@@ -144,9 +144,10 @@ export function Consumables({card}: { card: Planet_Final | Spectral_Final | Taro
 )
 }
 export interface GameCardProps {
-    card: Planet_Final | Spectral_Final | Tarot_Final | Joker_Final | StandardCard_Final
+    card: Planet_Final | Spectral_Final | Tarot_Final | Joker_Final | StandardCard_Final;
+    glow?: 'red' | 'blue' | null;
 }
-export function GameCard({card}: GameCardProps) {
+export function GameCard({card, glow}: GameCardProps) {
     let Card = () => {
         if (card instanceof StandardCard_Final) {
             return <PlayingCard card={card}/>
@@ -158,9 +159,21 @@ export function GameCard({card}: GameCardProps) {
             return <Consumables card={card}/>
         }
     }
+    
+    const glowStyle = glow ? {
+        boxShadow: glow === 'red' 
+            ? '0 0 12px 4px rgba(255, 60, 60, 0.8), 0 0 20px 8px rgba(255, 0, 0, 0.5)' 
+            : '0 0 12px 4px rgba(60, 140, 255, 0.8), 0 0 20px 8px rgba(0, 100, 255, 0.5)',
+        borderRadius: '4px',
+    } : {};
+    
     return (
-        <Paper maw={'71px'}>
+        <Paper 
+            maw={'71px'}
+            style={{ overflow: 'visible', ...glowStyle }}
+            p={0}
+        >
             <Card/>
-            </Paper>
+        </Paper>
     )
 }

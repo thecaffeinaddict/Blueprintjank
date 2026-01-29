@@ -20,7 +20,7 @@ import {
 } from "@mantine/core";
 import {toHeaderCase} from "js-convert-case";
 import {useDisclosure, useViewportSize} from "@mantine/hooks";
-import {Boss, Tag as RenderTag, Voucher} from "../../Rendering/gameElements.tsx";
+import {Boss, BoosterPack, Tag as RenderTag, Voucher} from "../../Rendering/gameElements.tsx";
 import {BuyMetaData} from "../../../modules/classes/BuyMetaData.ts";
 import {BuyWrapper} from "../../buyerWrapper.tsx";
 import {LOCATIONS, LOCATION_TYPES, blinds, tagDescriptions} from "../../../modules/const.ts";
@@ -33,6 +33,7 @@ import Footer from "../layout/footer.tsx";
 import HomePage from "../homePage/homepage.tsx";
 import Index from "../textView";
 import Simple from "../simpleView/simple.tsx";
+import JamlView from "../jamlView/JamlView.tsx";
 import SnapshotModal from "../snapshotView/SnapshotView.tsx";
 import {useSeedResultsContainer} from "../../../modules/state/analysisResultProvider.tsx";
 import type {Blinds} from "../../../modules/state/store.ts";
@@ -63,13 +64,13 @@ function QueueCarousel({ queue, tabName }: { queue: Array<any>, tabName: string 
     }, [embla, selectedSearchResult])
 
     return (
-        <Paper>
+        <Box>
             <Carousel
                 getEmblaApi={setEmbla}
-                slideGap={{ base: 'sm' }}
-                slideSize={{ base: 90 }}
+                slideGap={{ base: 'xs', sm: 'sm' }}
+                slideSize={85}
                 withControls={false}
-                height={190}
+                height={175}
                 emblaOptions={{ dragFree: true, containScroll: "keepSnaps" }}
                 type={'container'}
             >
@@ -97,7 +98,7 @@ function QueueCarousel({ queue, tabName }: { queue: Array<any>, tabName: string 
                     })
                 }
             </Carousel>
-        </Paper>
+        </Box>
     )
 }
 
@@ -111,101 +112,85 @@ function AntePanel({ ante, tabName, timeTravelVoucherOffset }: {
     const packs = ante.blinds[selectedBlind].packs;
     return (
         <Tabs.Panel w={'100%'} value={tabName}>
-            <Paper withBorder h={'100%'} p={'sm'}>
-                <Group preventGrowOverflow mb={'sm'}>
+            <Box h={'100%'} p={{ base: 'xs', sm: 'xs' }}>
+                <Stack gap={4} mb={'xs'}>
                     <Fieldset flex={1} legend={'Shop'}>
                         <QueueCarousel queue={queue} tabName={tabName} />
                     </Fieldset>
-                    <Fieldset legend={'Voucher'}>
-                        <Flex h={192} direction={'column'} align={'space-between'}>
-                            <Text ta={'center'} c={'dimmed'} fz={'md'}> Voucher </Text>
-                            <BuyWrapper
-                                bottomOffset={40}
-                                topOffset={40}
-                                metaData={
-                                    new BuyMetaData({
-                                        location: LOCATIONS.VOUCHER,
-                                        locationType: LOCATIONS.VOUCHER,
-                                        ante: String(Number(tabName) - timeTravelVoucherOffset),
-                                        blind: selectedBlind,
-                                        itemType: 'voucher',
-                                        name: ante.voucher ?? "",
-                                        index: 0,
-                                        link: `https://balatrowiki.org/w/vouchers`
-                                    })
-                                }
-                            >
-                                <Voucher voucherName={ante.voucher} />
-                            </BuyWrapper>
-                            <Text ta={'center'} fz={'md'}>  {ante.voucher} </Text>
-                        </Flex>
-                    </Fieldset>
-                </Group>
-
-                <Accordion multiple={true} value={packs?.map(({ name }: { name: string }) => name) ?? []} w={'100%'}
-                    variant={'separated'}>
-                    {
-                        packs.map((pack: Pack, index: number) => {
-                            return (
-                                <Accordion.Item key={String(pack.name) + String(index)} value={String(pack.name)}>
-                                    <Accordion.Control w={'100%'}>
-                                        <Group justify={'space-between'} pr={'1rem'}>
-                                            <Group>
-                                                <Text fw={500}>{toHeaderCase(String(pack.name))}</Text>
-                                                <Badge color={'blue'}> Cards: {pack.size}</Badge>
-                                            </Group>
-                                            <Badge>
-                                                Pick: {pack.choices}
-                                            </Badge>
-                                        </Group>
-                                    </Accordion.Control>
-                                    <Accordion.Panel>
-                                        <Box w={'100%'} key={index}>
-                                            <Carousel
-                                                type={'container'}
-                                                slideSize="90px"
-                                                slideGap={{ base: 'xs' }}
-                                                withControls={true}
-                                                height={190}
-                                                emblaOptions={{
-                                                    dragFree: true,
-                                                    containScroll: "keepSnaps",
-                                                    align: 'start'
-                                                }}
-                                            >
-                                                {pack.cards.map((card, cardIndex) => (
-                                                    <Carousel.Slide key={cardIndex}>
-                                                        <BuyWrapper
-                                                            key={cardIndex}
-                                                            // bottomOffset={30}
-                                                            // topOffset={30}
-                                                            metaData={
-                                                                new BuyMetaData({
-                                                                    location: pack.name,
-                                                                    locationType: LOCATION_TYPES.PACK,
-                                                                    index: cardIndex,
-                                                                    ante: tabName,
-                                                                    blind: selectedBlind,
-                                                                    itemType: 'card',
-                                                                    link: `https://balatrowiki.org/w/${card!.name}`,
-                                                                    card: card,
-                                                                    name: card!.name
-                                                                })
-                                                            }
-                                                        >
-                                                            <GameCard card={card!} />
-                                                        </BuyWrapper>
-                                                    </Carousel.Slide>
-                                                ))}
-                                            </Carousel>
-                                        </Box>
-                                    </Accordion.Panel>
-                                </Accordion.Item>
-                            )
-                        })
-                    }
-                </Accordion>
-            </Paper>
+                    <Group align="stretch" gap="xs" wrap="nowrap">
+                        <Fieldset legend={'Voucher'} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                            <Stack gap={4} align="center">
+                                <BuyWrapper
+                                    bottomOffset={20}
+                                    topOffset={20}
+                                    metaData={
+                                        new BuyMetaData({
+                                            location: LOCATIONS.VOUCHER,
+                                            locationType: LOCATIONS.VOUCHER,
+                                            ante: String(Number(tabName) - timeTravelVoucherOffset),
+                                            blind: selectedBlind,
+                                            itemType: 'voucher',
+                                            name: ante.voucher ?? "",
+                                            index: 0,
+                                            link: `https://balatrowiki.org/w/vouchers`
+                                        })
+                                    }
+                                >
+                                    <Voucher voucherName={ante.voucher} />
+                                </BuyWrapper>
+                                <Text ta={'center'} fz={'xs'} lineClamp={1}>{ante.voucher}</Text>
+                            </Stack>
+                        </Fieldset>
+                        {packs.slice(0, 2).map((pack: Pack, index: number) => (
+                            <Fieldset key={String(pack.name) + String(index)} legend={toHeaderCase(String(pack.name))} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                <Stack gap={2} style={{ flex: 1 }}>
+                                    <Group justify="center" gap="xs">
+                                        <Badge color={'blue'} size="xs">Cards: {pack.size}</Badge>
+                                        <Badge size="xs">Pick: {pack.choices}</Badge>
+                                    </Group>
+                                    <Box w={'100%'} style={{ flex: 1 }}>
+                                        <Carousel
+                                            type={'container'}
+                                            slideSize={85}
+                                            slideGap={{ base: 'xs' }}
+                                            withControls={false}
+                                            height={150}
+                                            emblaOptions={{
+                                                dragFree: true,
+                                                containScroll: "keepSnaps",
+                                                align: 'start'
+                                            }}
+                                        >
+                                            {pack.cards.map((card, cardIndex) => (
+                                                <Carousel.Slide key={cardIndex}>
+                                                    <BuyWrapper
+                                                        key={cardIndex}
+                                                        metaData={
+                                                            new BuyMetaData({
+                                                                location: pack.name,
+                                                                locationType: LOCATION_TYPES.PACK,
+                                                                index: cardIndex,
+                                                                ante: tabName,
+                                                                blind: selectedBlind,
+                                                                itemType: 'card',
+                                                                link: `https://balatrowiki.org/w/${card!.name}`,
+                                                                card: card,
+                                                                name: card!.name
+                                                            })
+                                                        }
+                                                    >
+                                                        <GameCard card={card!} />
+                                                    </BuyWrapper>
+                                                </Carousel.Slide>
+                                            ))}
+                                        </Carousel>
+                                    </Box>
+                                </Stack>
+                            </Fieldset>
+                        ))}
+                    </Group>
+                </Stack>
+            </Box>
         </Tabs.Panel>
     )
 }
@@ -392,8 +377,8 @@ function TagDisplay({ tag, ante }: { tag: Tag, ante: Ante }) {
                     <RenderTag tagName={tag} />
                 </Box>
             </Popover.Target>
-            <Popover.Dropdown>
-                <Box onMouseEnter={open} onMouseLeave={close} maw={375} w={'100%'}>
+            <Popover.Dropdown maw={400}>
+                <Box onMouseEnter={open} onMouseLeave={close} w={'100%'}>
                     <Text ta={'center'}>{tag}</Text>
                     <Text>
                         {tagDescriptions[tag] ?? 'No description available'}
@@ -428,18 +413,30 @@ function SeedExplorer() {
         return null;
     }
 
-
     const pool = SeedResults.antes
-    const itemPool = selectedAnte
+    const availableAntes = Object.keys(pool).map(Number).sort((a, b) => a - b);
+    
+    // Ensure selectedAnte is valid, default to 1 if undefined/null or not found (but allow ante 0 if explicitly selected)
+    let itemPool = selectedAnte;
+    if (selectedAnte == null || selectedAnte === undefined || !pool[itemPool] || availableAntes.length === 0) {
+        if (availableAntes.length > 0) {
+            // Default to ante 1 if it exists, otherwise use first available
+            itemPool = pool[1] ? 1 : availableAntes[0];
+            setSelectedAnte(itemPool);
+        } else {
+            return null;
+        }
+    }
 
     return (
         <>
-            <Box>
+            <Box mb="xs">
                 <NativeSelect
-                    mb={'sm'}
+                    mb="xs"
                     hiddenFrom="sm"
                     value={selectedAnte}
                     onChange={(e) => setSelectedAnte(Number(e.currentTarget.value))}
+                    size="xs"
                     data={Object.keys(SeedResults.antes).map((ante: string) => ({
                         label: `Ante ${ante}`,
                         value: String(ante)
@@ -450,25 +447,25 @@ function SeedExplorer() {
                     onChange={(v)=>setSelectedBlind(v as Blinds)}
                     fullWidth
                     radius="xl"
-                    size="md"
-                    mb={'sm'}
+                    size={width > 600 ? 'sm' : 'xs'}
+                    mb="xs"
                     data={blinds.map((blind: string, i: number) => ({
                         value: ['smallBlind', 'bigBlind', 'bossBlind'][i],
-                        label: <Group justify={'center'}>
-                            {blind}
-                            {i < 2 && (
+                        label: <Group justify={'center'} gap={4}>
+                            <Text size="xs">{blind}</Text>
+                            {i < 2 && pool[itemPool]?.tags?.[i] && (
                                 <TagDisplay tag={pool[itemPool].tags[i] as Tag} ante={pool[itemPool]} />
                             )
                             }
                             {
-                                i === 2 &&
+                                i === 2 && pool[itemPool] &&
                                 <Popover>
                                     <Popover.Target>
                                         <Box>
                                             <Boss bossName={pool[itemPool].boss ?? ''} />
                                         </Box>
                                     </Popover.Target>
-                                    <Popover.Dropdown>
+                                    <Popover.Dropdown maw={400}>
                                         <Box>
                                             <Text>{pool[itemPool].boss}</Text>
                                         </Box>
@@ -484,7 +481,7 @@ function SeedExplorer() {
             <Tabs
                 w={'100%'}
                 variant="pills"
-                orientation={"vertical"}
+                orientation={width > 767 ? "vertical" : "horizontal"}
                 defaultValue={'1'}
                 keepMounted={false}
                 value={String(selectedAnte)}
@@ -492,21 +489,20 @@ function SeedExplorer() {
                     setSelectedAnte(Number(value));
                 }}
             >
-                <Box mah={'65vh'} style={{ display: width > 767 ? 'revert' : 'none' }} mr={'2rem'}>
-                    <ScrollArea type="scroll" scrollbars={'y'} h={'100%'}>
-                        <Tabs.List>
-                            {
-                                Object.keys(SeedResults.antes).map((ante: string) => (
-                                    <Tabs.Tab
-                                        key={ante}
-                                        value={String(ante)}
-                                    >
-                                        {`Ante ${ante}`}
-                                    </Tabs.Tab>
-                                ))
-                            }
-                        </Tabs.List>
-                    </ScrollArea>
+                <Box style={{ display: width > 767 ? 'revert' : 'none' }} mr={{ base: 0, md: '1rem' }} ml={{ base: 0, md: 'xs' }}>
+                    <Tabs.List>
+                        {
+                            Object.keys(SeedResults.antes).map((ante: string) => (
+                                <Tabs.Tab
+                                    key={ante}
+                                    value={String(ante)}
+                                    size="sm"
+                                >
+                                    {`Ante ${ante}`}
+                                </Tabs.Tab>
+                            ))
+                        }
+                    </Tabs.List>
                 </Box>
                 {
                     Object.entries(SeedResults.antes).map(([ante, anteData]: [string, Ante], i: number) => {
@@ -532,6 +528,7 @@ function Main() {
             {SeedResults && viewMode === 'blueprint' && <SeedExplorer />}
             {SeedResults && viewMode === 'text' && <Index />}
             {SeedResults && viewMode === 'simple' && <Simple />}
+            {SeedResults && viewMode === 'custom' && <JamlView />}
             {SeedResults && <SnapshotModal />}
         </AppShell.Main>
     )
@@ -556,22 +553,37 @@ export function Blueprint() {
 
     return (
         <AppShell
-            header={{ height: { base: 60, md: 70, lg: 80 } }}
+            header={{ height: { base: 45, md: 50, lg: 55 } }}
+            footer={{ height: { base: 50, sm: 45 } }}
             aside={{
-                width: { base: '100%', md: 400, lg: 550 },
-                breakpoint: 'md',
+                width: { base: 380, sm: 380 },
+                breakpoint: 'sm',
                 collapsed: {
                     desktop: !outputOpened,
                     mobile: !outputOpened
                 },
             }}
             navbar={{
-                width: { base: '100%', md: 400, lg: 400 },
+                width: { base: 380, sm: 380 },
                 breakpoint: 'sm',
                 collapsed: {
-                    desktop: !(width > 1000) && !settingsOpened,
+                    desktop: !settingsOpened,
                     mobile: !settingsOpened
                 },
+            }}
+            styles={{
+                navbar: {
+                    maxWidth: '100%',
+                    overflowX: 'hidden'
+                },
+                aside: {
+                    maxWidth: '100%',
+                    overflowX: 'hidden'
+                },
+                main: {
+                    maxWidth: '100%',
+                    overflowX: 'hidden'
+                }
             }}
             padding="md"
         >
@@ -579,7 +591,9 @@ export function Blueprint() {
             <NavBar/>
             <Main />
             <Aside />
-            <Footer />
+            <AppShell.Footer>
+                <Footer />
+            </AppShell.Footer>
         </AppShell>
     )
 }

@@ -16,7 +16,7 @@ import {
 } from "@mantine/core";
 import { useHover, useLongPress } from "@mantine/hooks";
 import { IconArrowCapsule, IconCalculator, IconChevronDown, IconExternalLink, IconFlag, IconLock } from "@tabler/icons-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LOCATION_TYPES } from "../modules/const.ts";
 import { useCardStore } from "../modules/state/store.ts";
 import type { BuyWrapperProps} from "../modules/const.ts";
@@ -32,14 +32,59 @@ export function BuyWrapper({ children, bottomOffset, metaData, horizontal = fals
     const useCardPeek = useCardStore(state => state.applicationState.useCardPeek);
     const cardId = `ante_${metaData?.ante}_${metaData?.location?.toLowerCase()}_${metaData?.index}`
     const isLocked = cardId in lockedCards;
+    const [isScrolling, setIsScrolling] = useState(false);
+    const [scrollTimeout, setScrollTimeout] = useState<NodeJS.Timeout | null>(null);
+    
+    useEffect(() => {
+        return () => {
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+        };
+    }, [scrollTimeout]);
+    
     const handlers = useLongPress(() => {
-        if (!useCardPeek) return;
+        if (!useCardPeek || isScrolling) return;
         if (isLocked) {
             unlockCard(cardId);
         } else {
             lockCard(cardId, metaData?.card);
         }
+    }, {
+        threshold: 500,
     });
+    
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setIsScrolling(false);
+    };
+    
+    const handleTouchMove = (e: React.TouchEvent) => {
+        setIsScrolling(true);
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+        const timeout = setTimeout(() => {
+            setIsScrolling(false);
+        }, 150);
+        setScrollTimeout(timeout);
+    };
+    
+    const handleMouseDown = (e: React.MouseEvent) => {
+        setIsScrolling(false);
+    };
+    
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (e.buttons > 0) {
+            setIsScrolling(true);
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            const timeout = setTimeout(() => {
+                setIsScrolling(false);
+            }, 150);
+            setScrollTimeout(timeout);
+        }
+    };
     const isSelected = sameAnte && sameIndex && sameLocation;
     const { hovered, ref } = useHover();
     const [menuOpen, setMenuOpen] = useState(false);
@@ -104,6 +149,10 @@ export function BuyWrapper({ children, bottomOffset, metaData, horizontal = fals
                 >
                     <Card
                         {...handlers}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
                         style={{
                             boxShadow: isSelected ? '0 0 12px 12px rgba(255,255,255,0.3)' : 'none',
                             transform: hasUserAttention ? 'scale(1.15)' : 'none',
@@ -194,7 +243,7 @@ export function BuyWrapper({ children, bottomOffset, metaData, horizontal = fals
                                         <IconChevronDown size={16} stroke={1.5} />
                                     </ActionIcon>
                                 </Menu.Target>
-                                <Menu.Dropdown >
+                                <Menu.Dropdown maw={300}>
                                     {
                                         metaData?.link &&
                                         <Menu.Item

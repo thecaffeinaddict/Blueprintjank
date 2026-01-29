@@ -189,7 +189,7 @@ export default function SnapshotModal() {
     }, [uniqueJokers]);
 
     return (
-        <Modal opened={opened} onClose={close} title="Seed Snapshot" size="xl" centered>
+        <Modal opened={opened} onClose={close} title="Seed Snapshot" size="xl" centered maw={600}>
             <Stack p="md" gap="xl">
                 <Paper p="md" withBorder>
                     <Title order={3} mb="md">Bosses</Title>
@@ -243,7 +243,7 @@ export default function SnapshotModal() {
                                         })} />
                                     </Box>
                                 </HoverCard.Target>
-                                <HoverCard.Dropdown w={320}>
+                                <HoverCard.Dropdown w={320} maw={400}>
                                     <Stack gap={0}>
                                         <Title order={3} mb={0}>
                                             {data.joker.name}

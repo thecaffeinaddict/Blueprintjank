@@ -202,7 +202,7 @@ interface GameCardProps {
 
 function GameCard({card, index}: GameCardProps) {
     return (
-        <Paper maw={'71px'}>
+        <Paper maw={'71px'} miw={'71px'} style={{ flexShrink: 0 }}>
             {
                 card instanceof StandardCard_Final ? (
                     <SimplePlayingCard index={index} card={card}/>
@@ -355,6 +355,7 @@ function Simple() {
     const debouncedSetSelectedAnte = useDebouncedCallback(setSelectedAnte, 500)
     const lockedCards = useCardStore(state => state.lockState.lockedCards);
     const clearLockedCards = useCardStore(state => state.clearLockedCards);
+    const analyzeSeed = useCardStore(state => state.analyzeSeed)
     const hasLockedCards = Object.keys(lockedCards).length > 0;
     if (!SeedResults) return null;
 
@@ -403,6 +404,7 @@ function Simple() {
                             leftSection={<IconLockOpen size={16}/>}
                             onClick={() => {
                                 clearLockedCards();
+                                analyzeSeed()
                             }}
                         >
                             Clear Locked Cards ({Object.keys(lockedCards).length})

@@ -12,7 +12,8 @@ export interface InitialState {
         seed: string;
         deck: string;
         cardsPerAnte: number;
-        antes: number;
+        minAnte: number;
+        maxAnte: number;
         stake: string;
         showmanOwned: boolean;
         gameVersion: string;
@@ -66,7 +67,8 @@ interface StoreActions {
     setSeed: (seed: string) => void;
     setDeck: (deck: string) => void;
     setCardsPerAnte: (cardsPerAnte: number) => void;
-    setAntes: (antes: number) => void;
+    setMinAnte: (minAnte: number) => void;
+    setMaxAnte: (maxAnte: number) => void;
     setStake: (stake: string) => void;
     setGameVersion: (gameVersion: string) => void;
     setSelectedOptions: (selectedOptions: Array<string>) => void;
@@ -113,7 +115,8 @@ const initialState: InitialState = {
         seed: '',
         deck: 'Ghost Deck',
         cardsPerAnte: 50,
-        antes: 8,
+        minAnte: 0,
+        maxAnte: 8,
         stake: 'White Stake',
         showmanOwned: false,
         gameVersion: '10106',
@@ -122,7 +125,7 @@ const initialState: InitialState = {
     applicationState: {
         viewMode: 'blueprint',
         start: false,
-        settingsOpen: true,
+        settingsOpen: false,
         asideOpen: false,
         selectOptionsModalOpen: false,
         featuresModalOpen: false,
@@ -207,11 +210,21 @@ const blueprintStorage: StateStorage = {
 // Helper functions to manage immolateState in URL
 function getImmolateStateFromUrl() {
     const params = new URLSearchParams(window.location.search);
+    // Backward compatibility: if old 'antes' param exists, use it as maxAnte with minAnte=0
+    const oldAntes = params.get('antes');
+    const minAnte = oldAntes 
+        ? 0 
+        : parseInt(params.get('minAnte') ?? initialState.immolateState.minAnte.toString());
+    const maxAnte = oldAntes 
+        ? parseInt(oldAntes) 
+        : parseInt(params.get('maxAnte') ?? initialState.immolateState.maxAnte.toString());
+    
     return {
         seed: params.get('seed') || initialState.immolateState.seed,
         deck: params.get('deck') || initialState.immolateState.deck,
         cardsPerAnte: parseInt(params.get('cardsPerAnte') || initialState.immolateState.cardsPerAnte.toString()),
-        antes: parseInt(params.get('antes') || initialState.immolateState.antes.toString()),
+        minAnte,
+        maxAnte,
         stake: params.get('stake') || initialState.immolateState.stake,
         gameVersion: params.get('gameVersion') || initialState.immolateState.gameVersion,
     };
@@ -246,10 +259,14 @@ export const useCardStore = create<CardStore,[
                             prev.immolateState.cardsPerAnte = cardsPerAnte
                             prev.applicationState.hasSettingsChanged = true;
                         }, undefined, 'Global/SetCardsPerAnte'),
-                        setAntes: (antes) => set((prev) => {
-                            prev.immolateState.antes = antes
+                        setMinAnte: (minAnte) => set((prev) => {
+                            prev.immolateState.minAnte = minAnte
                             prev.applicationState.hasSettingsChanged = true;
-                        }, undefined, 'Global/SetAntes'),
+                        }, undefined, 'Global/SetMinAnte'),
+                        setMaxAnte: (maxAnte) => set((prev) => {
+                            prev.immolateState.maxAnte = maxAnte
+                            prev.applicationState.hasSettingsChanged = true;
+                        }, undefined, 'Global/SetMaxAnte'),
                         setStake: (stake) => set((prev) => {
                             prev.immolateState.stake = stake
                             prev.applicationState.hasSettingsChanged = true;

@@ -3,17 +3,20 @@ import MantineThemeFile from "../../themes/Mantine.ts";
 import VivillanThemeFile from "../../themes/Vivillan.ts";
 import MurkrowThemeFile from "../../themes/Murkrow.ts";
 import SylveonThemeFile from "../../themes/Sylveon.ts";
+import { BalatroTheme } from "../../themes/Balatro.ts";
 import type { MantineThemeOverride } from "@mantine/core";
 
 export type KnownThemes = "Vivillan" |
     "Murkrow" |
     "Mantine" |
-    "Sylveon";
+    "Sylveon" |
+    "Balatro";
 const themes = {
     Mantine: MantineThemeFile,
     Vivillan: VivillanThemeFile,
     Murkrow: MurkrowThemeFile,
     Sylveon: SylveonThemeFile,
+    Balatro: BalatroTheme,
 };
 export const themeNames = Object.keys(themes) as Array<KnownThemes>;
 export const BlueprintThemeContext = createContext<{theme: KnownThemes, themes: Record<KnownThemes,MantineThemeOverride>, setTheme: (theme: KnownThemes)=>void} | undefined>({

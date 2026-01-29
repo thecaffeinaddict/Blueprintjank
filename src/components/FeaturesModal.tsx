@@ -14,6 +14,7 @@ export default function FeaturesModal() {
             title="Blueprint Features"
             opened={featuresModalOpen}
             onClose={() => closeFeaturesModal()}
+            maw={600}
         >
             <Container fluid>
                 <Accordion variant="separated" defaultValue={null}>

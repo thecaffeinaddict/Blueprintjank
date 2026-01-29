@@ -1,8 +1,26 @@
+import { env } from 'node:process'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: process?.env?.BASE_PATH || '/Blueprint/',
+  base: env.BASE_PATH || '/',
+  server: {
+    port: 4444,
+    cors: true,
+    allowedHosts: ['*.8pi.me'],
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': '*',
+    },
+  },
+  optimizeDeps: {
+    exclude: ['@aspect-build/bazel-lib'],
+  },
+  assetsInclude: ['**/*.wasm'],
+  build: {
+    target: 'esnext',
+  },
 })

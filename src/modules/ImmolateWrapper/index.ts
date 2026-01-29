@@ -299,7 +299,8 @@ export interface AnalyzeSettings {
     deck: string;
     stake: string;
     gameVersion: string;
-    antes: number;
+    minAnte: number;
+    maxAnte: number;
     cardsPerAnte: number;
 }
 
@@ -518,6 +519,9 @@ export function analyzeSeed(settings: AnalyzeSettings, analyzeOptions: AnalyzeOp
     const staticAnteQueues = {};
 
     function generateAnte(ante: number) {
+        const maxCards = analyzeOptions?.maxMiscCardSource ?? 15;
+        const miscCardSources = getMiscCardSources(maxCards);
+        
         engine.initUnlocks(ante, false);
         const burnerInstance = new Game(
             seed,
@@ -622,8 +626,6 @@ export function analyzeSeed(settings: AnalyzeSettings, analyzeOptions: AnalyzeOp
                 }
             }
         }
-        const maxCards = analyzeOptions?.maxMiscCardSource ?? 15
-        const miscCardSources = getMiscCardSources(maxCards);
 
         const updates = analyzeOptions?.updates;
         if (updates) {
@@ -763,14 +765,17 @@ export function analyzeSeed(settings: AnalyzeSettings, analyzeOptions: AnalyzeOp
     }
 
 
-    for (let ante = 1; ante <= settings.antes; ante++) {
+    const startAnte = settings.minAnte === 0 ? 1 : settings.minAnte;
+    for (let ante = startAnte; ante <= settings.maxAnte; ante++) {
         output.antes[ante] = generateAnte(ante);
     }
-    try {
-        output.antes[0] = generateAnte(0)
-        output.antes[0].boss = output.antes[1].boss;
-    } catch (e) {
-        console.error("Error generating ante 0:", e);
+    if (settings.minAnte === 0) {
+        try {
+            output.antes[0] = generateAnte(0)
+            output.antes[0].boss = output.antes[1].boss;
+        } catch (e) {
+            console.error("Error generating ante 0:", e);
+        }
     }
 
     return output;

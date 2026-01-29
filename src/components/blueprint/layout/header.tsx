@@ -14,27 +14,42 @@ export default function Header() {
 
     const outputOpened = useCardStore(state => state.applicationState.asideOpen);
     const toggleOutput = useCardStore(state => state.toggleOutput);
+    const headerGap = width > 600 ? 'md' : 'xs';
+    const rightGap = width > 600 ? 'sm' : 'xs';
     return (
         <AppShell.Header>
-            <Container fluid h={'100%'}>
-                <Group h={'100%'} justify={'space-between'}>
-                    <Group flex={1}>
-                        <Burger opened={settingsOpened} onClick={toggleSettings} hiddenFrom={'md'} size="sm"/>
+            <Container fluid h={'100%'} px={{ base: 'xs', sm: 'md' }}>
+                <Group h={'100%'} justify={'space-between'} gap={headerGap}>
+                    <Group flex={1} gap={headerGap} align="center">
+                        <Center h={'100%'}>
+                            <Burger 
+                                opened={settingsOpened} 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleSettings();
+                                }} 
+                                size="sm"
+                            />
+                        </Center>
                         <Center h={'100%'}>
                             <Group grow>
                                 <Box flex={1}>
-                                    <Title > Blueprint </Title>
+                                    <Title order={5} fz={{ base: 'xs', sm: 'sm' }}> Blueprint </Title>
                                 </Box>
                             </Group>
                         </Center>
                     </Group>
 
-                    <Group align={'center'}>
+                    <Group align={'center'} gap={rightGap}>
                         {width > 600 && start && <SearchSeedInput/>}
                         {width > 700 && start && (
                             <CopyButton value={new URL(window.location.href).toString()}>
                                 {({copied, copy}) => (
-                                    <Button color={copied ? 'teal' : 'blue'} onClick={copy}>
+                                    <Button 
+                                        color={copied ? 'teal' : 'blue'} 
+                                        onClick={copy}
+                                        size={width > 600 ? 'sm' : 'xs'}
+                                    >
                                         {copied ? 'Copied url' : 'Copy url'}
                                     </Button>
                                 )}

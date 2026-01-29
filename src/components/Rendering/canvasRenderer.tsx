@@ -1,5 +1,5 @@
 import {Layer} from "../../modules/classes/Layer.ts";
-import {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useForceUpdate, useHover, useMergedRef, useMouse, useResizeObserver} from "@mantine/hooks";
 import {AspectRatio} from "@mantine/core";
 
@@ -58,12 +58,11 @@ export function renderImage(
     if (layer.order === 0) {
         canvas.width = cardWidth;
         canvas.height = cardHeight;
-        canvas.style.width = `${cardWidth}px`;
-        canvas.style.height = `${cardHeight}px`;
+        // Don't set style.width/height here - let CSS handle scaling
     }
 
     canvas.style.imageRendering = 'pixelated';
-    context.imageSmoothingEnabled = true;
+    context.imageSmoothingEnabled = false;
 
     // Save context state before modifying
     context.save();
@@ -109,8 +108,10 @@ interface SimpleRenderProps {
 
 
 
-export function SimpleRenderCanvas({ layers, invert = false }: SimpleRenderProps) {
+export const SimpleRenderCanvas = React.forwardRef<HTMLCanvasElement, SimpleRenderProps>(
+    ({ layers, invert = false }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const mergedRef = useMergedRef(canvasRef, ref);
     const [ratio, setRatio] = useState(3 / 4);
     const forceUpdate = useForceUpdate();
     useEffect(() => {
@@ -148,20 +149,23 @@ export function SimpleRenderCanvas({ layers, invert = false }: SimpleRenderProps
         } else {
             canvas.style.filter = 'none';
         }
-    }, [layers, invert]);
+    }, [layers, invert, forceUpdate]);
 
     return (
-        <AspectRatio ratio={ratio} w="100%">
+        <AspectRatio ratio={ratio} w="100%" h="100%" style={{ maxWidth: '100%', maxHeight: '100%', overflow: 'visible' }}>
             <canvas
-                ref={canvasRef}
+                ref={mergedRef}
                 style={{
                     borderRadius: '6px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                    width: '100%',
+                    height: '100%',
+                    display: 'block'
                 }}
             />
         </AspectRatio>
     );
-}
+});
 
 
 // Advanced card rendering with canvas
@@ -273,6 +277,7 @@ export function RenderImagesWithCanvas({layers, invert = false, spacing = false}
                 transformStyle: 'preserve-3d',
                 transformOrigin: 'center center',
                 display: 'flex',
+                overflow: 'visible'
             }}
         >
             <canvas
@@ -282,7 +287,10 @@ export function RenderImagesWithCanvas({layers, invert = false, spacing = false}
                         ? `0 2px 12px rgba(0,0,0,0.3)`
                         : '0 2px 8px rgba(0,0,0,0.2)',
                     borderRadius: '6px',
-                    transition: hovered ? 'none' : 'box-shadow 0.4s ease-out'
+                    transition: hovered ? 'none' : 'box-shadow 0.4s ease-out',
+                    width: '100%',
+                    height: '100%',
+                    display: 'block'
                 }}
             />
         </AspectRatio>

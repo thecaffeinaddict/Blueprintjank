@@ -1,14 +1,17 @@
+import React, {useState, useRef, useEffect} from "react";
 import {useMediaQuery} from "@mantine/hooks";
 import {
+    ActionIcon,
     AppShell,
     Badge,
+    Box,
     Button,
     Card,
     Center,
+    Divider,
     Grid,
     Group,
     NumberInput,
-    ScrollArea,
     Select,
     Stack,
     Tabs,
@@ -16,8 +19,7 @@ import {
     Title,
     useMantineTheme
 } from "@mantine/core";
-import {IconCalendarEvent, IconCards, IconCheck, IconShoppingCart} from "@tabler/icons-react";
-import React, {useState} from "react";
+import {IconCalendarEvent, IconCards, IconCheck, IconShoppingCart, IconX} from "@tabler/icons-react";
 import {useCardStore} from "../../../modules/state/store.ts";
 import SearchSeedInput from "../../searchInput.tsx";
 import MiscCardSourcesDisplay from "../../miscSourcesDisplay.tsx";
@@ -93,9 +95,9 @@ export function EventsPanel() {
     };
 
     return (
-        <Stack gap="md">
-            <Group justify="space-between" align="center">
-                <Title order={4}>Unlock Events</Title>
+        <Stack gap={2}>
+            <Group justify="space-between" align="center" gap="xs">
+                <Title order={5} fz="xs">Unlock Events</Title>
                 {events.length > 0 && (
                     <Button variant="light" color="red" size="xs" onClick={clearEvents}>
                         Clear All Events
@@ -103,34 +105,34 @@ export function EventsPanel() {
                 )}
             </Group>
 
-            <Grid>
+            <Grid gutter={2}>
                 {EVENT_UNLOCKS.map((event) => {
                     const {ante, blind} = selections[event.name];
                     const isTracked = isEventTracked(event.name, ante, blind);
 
                     return (
                         <Grid.Col span={12} key={event.name}>
-                            <Card withBorder p="md" radius="md">
-                                <Group justify="space-between" mb="xs">
-                                    <Group>
-                                        <IconCalendarEvent size={20}/>
-                                        <Text fw={700}>{event.name}</Text>
+                            <Card p="xs" radius="sm" style={{ border: '1px solid var(--mantine-color-default-border)' }}>
+                                <Group justify="space-between" mb={1} gap="xs">
+                                    <Group gap={2}>
+                                        <IconCalendarEvent size={12}/>
+                                        <Text fw={600} size="xs">{event.name}</Text>
                                     </Group>
                                     {isTracked && (
-                                        <Badge color="green">Tracked</Badge>
+                                        <Badge color="green" size="xs">Tracked</Badge>
                                     )}
                                 </Group>
 
-                                <Text size="sm" c="dimmed" mb="md">{event.condition}</Text>
+                                <Text size="xs" c="dimmed" mb={2}>{event.condition}</Text>
 
-                                <Group>
+                                <Group gap={4}>
                                     <NumberInput
                                         size="xs"
                                         label="Ante"
                                         disabled={isTracked}
                                         value={ante}
                                         onChange={(value) => handleAnteChange(event.name, String(value) || "1")}
-                                        w={100}
+                                        w={70}
                                     />
                                     <Select
                                         size="xs"
@@ -139,14 +141,15 @@ export function EventsPanel() {
                                         value={blind}
                                         onChange={(value) => handleBlindChange(event.name, value || "bigBlind")}
                                         data={blindOptions}
-                                        w={150}
+                                        w={100}
                                     />
                                     <Button
                                         variant={isTracked ? "outline" : "filled"}
                                         color={isTracked ? "red" : "blue"}
                                         ml="auto"
+                                        size="xs"
                                         onClick={() => toggleEvent(event.name)}
-                                        leftSection={isTracked ? undefined : <IconCheck size={16}/>}
+                                        leftSection={isTracked ? undefined : <IconCheck size={12}/>}
                                     >
                                         {isTracked ? "Remove" : "Activate"}
                                     </Button>
@@ -162,6 +165,19 @@ export function EventsPanel() {
 
 
 export function Aside() {
+    const [addedSourceNames, setAddedSourceNames] = React.useState<Set<string>>(new Set());
+
+    React.useEffect(() => {
+        const handleCustomSourcesUpdated = (event: Event) => {
+            const customEvent = event as CustomEvent;
+            setAddedSourceNames(customEvent.detail.addedSourceNames);
+        };
+
+        window.addEventListener('customSourcesUpdated', handleCustomSourcesUpdated);
+        return () => {
+            window.removeEventListener('customSourcesUpdated', handleCustomSourcesUpdated);
+        };
+    }, []);
     const SeedResults = useSeedResultsContainer()
     const selectedAnte = useCardStore(state => state.applicationState.selectedAnte);
     const anteData = SeedResults?.antes[selectedAnte];
@@ -185,42 +201,117 @@ export function Aside() {
     const tab = useCardStore(state => state.applicationState.asideTab);
     const setTab = useCardStore(state => state.setAsideTab);
     const media = useMediaQuery("(min-width: 600px)");
+    const asideOpen = useCardStore(state => state.applicationState.asideOpen);
+    const toggleOutput = useCardStore(state => state.toggleOutput);
+    const viewMode = useCardStore(state => state.applicationState.viewMode);
+
+    const [asideWidth, setAsideWidth] = useState(380);
+    const [isResizing, setIsResizing] = useState(false);
+    const asideRef = useRef<HTMLDivElement>(null);
+    const resizeHandleRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isResizing) return;
+            const maxWidth = Math.min(800, Math.max(250, window.innerWidth - 20));
+            const newWidth = Math.min(maxWidth, Math.max(250, window.innerWidth - e.clientX));
+            setAsideWidth(newWidth);
+        };
+
+        const handleMouseUp = () => {
+            setIsResizing(false);
+        };
+
+        if (isResizing) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            return () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+        }
+    }, [isResizing]);
+
     return (
-        <AppShell.Aside p="md">
+        <AppShell.Aside
+            ref={asideRef}
+            p="xs"
+            hidden={!asideOpen}
+            style={{
+                width: `${asideWidth}px`,
+                minWidth: '250px',
+                maxWidth: 'min(800px, calc(100% - 20px))',
+                overscrollBehavior: 'contain',
+                overflowX: 'hidden'
+            }}
+        >
+            <Box
+                ref={resizeHandleRef}
+                onMouseDown={(e) => {
+                    e.preventDefault();
+                    setIsResizing(true);
+                }}
+                style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: '4px',
+                    cursor: 'col-resize',
+                    backgroundColor: 'transparent',
+                    zIndex: 10,
+                    transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                    if (!isResizing) {
+                        e.currentTarget.style.backgroundColor = 'var(--mantine-color-blue-6)';
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    if (!isResizing) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                }}
+            />
             {!media && (
-                <AppShell.Section hiddenFrom={'sm'} mb="md">
+                <AppShell.Section hiddenFrom={'sm'} mb="xs">
                     <SearchSeedInput/>
                 </AppShell.Section>
             )}
             <AppShell.Section>
+                <Text size="sm" fw={500} mb="xs">Card Sources</Text>
+                <Divider mb="xs" />
                 <Tabs value={tab} onChange={(e) => setTab(`${e}`)}>
-                    <Tabs.List grow mb="md">
+                    <Tabs.List grow mb="xs" style={{ overflow: 'visible', minWidth: 0 }}>
                         <Tabs.Tab
                             value="sources"
-                            leftSection={<IconCards size={16}/>}
+                            leftSection={<IconCards size={12}/>}
+                            style={{ overflow: 'visible', minWidth: 0 }}
                         >
                             Card Sources
                         </Tabs.Tab>
                         <Tabs.Tab
                             value="purchases"
-                            leftSection={<IconShoppingCart size={16}/>}
+                            leftSection={<IconShoppingCart size={12}/>}
                             rightSection={
-                                <Badge size="xs" circle variant="filled" color={theme.colors.blue[7]}>
+                                <Badge size="xs" circle variant="filled" color={theme.colors.blue[7]} style={{ flexShrink: 0, marginLeft: '4px' }}>
                                     {transactionsCount}
                                 </Badge>
                             }
+                            style={{ overflow: 'visible', minWidth: 0, paddingRight: '8px' }}
                         >
                             Purchases
                         </Tabs.Tab>
                         <Tabs.Tab
                             value="events"
+                            style={{ overflow: 'visible', minWidth: 0 }}
                         >
                             Events
                         </Tabs.Tab>
                     </Tabs.List>
                 </Tabs>
             </AppShell.Section>
-            <AppShell.Section component={ScrollArea} scrollbars="y">
+            <AppShell.Section style={{ overflowY: 'auto', overflowX: 'hidden', flex: 1 }}>
                 <Tabs value={tab}>
                     <Tabs.Panel value="sources" maw={'100%'}>
                         {SeedResults ? (
@@ -233,6 +324,23 @@ export function Aside() {
                                 auraQueue={auraQueue}
                                 boosterQueue={boosterQueue}
                                 draws={blinds}
+                                onAddSource={viewMode === 'custom' ? (sourceName, cards, sourceType) => {
+                                    // Dispatch custom event that Custom view can listen to
+                                    // Use the currently selected ante from the store
+                                    const currentAnte = selectedAnte || 1;
+                                    const sourceKey = `${sourceType}-${sourceName}-${currentAnte}`;
+                                    const isAdded = addedSourceNames.has(sourceKey);
+                                    window.dispatchEvent(new CustomEvent('addCustomSource', {
+                                        detail: { 
+                                            sourceName, 
+                                            cards, 
+                                            sourceType,
+                                            ante: currentAnte,
+                                            action: isAdded ? 'remove' : 'add'
+                                        }
+                                    }));
+                                } : undefined}
+                                addedSourceNames={viewMode === 'custom' ? addedSourceNames : undefined}
                             />
                         ) : (
                             <Center h={200}>

@@ -1,7 +1,7 @@
 import React from "react";
 import {
     Anchor,
-    AppShell,
+    Box,
     Button,
     Center, Divider,
     Flex,
@@ -31,8 +31,15 @@ export default function Footer() {
         }
     })
     return (
-        <AppShell.Footer p={'xs'}>
-            <Center w={'100%'}>
+        <Box
+            component="footer"
+            p={0}
+            style={{
+                backgroundColor: 'var(--mantine-color-body)',
+                borderTop: '1px solid var(--mantine-color-default-border)'
+            }}
+        >
+            <Center w={'100%'} py={4}>
                 <Flex align={'center'} direction={{base: "column", sm: "row"}} gap={'sm'}>
                     <Text ta={'center'} fz={'xs'}>
                         Made by Michael Walker with {' '}
@@ -100,6 +107,6 @@ export default function Footer() {
 
             </Center>
 
-        </AppShell.Footer>
+        </Box>
     )
 }

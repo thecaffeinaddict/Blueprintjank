@@ -9,7 +9,7 @@ export default function UnlocksModal() {
     const setSelectedOptions = useCardStore(state => state.setSelectedOptions);
     if (!selectOptionsModalOpen) return null;
     return (
-        <Modal size="auto" title={'Unlocks'} opened={selectOptionsModalOpen} onClose={() => closeSelectOptionModal()}>
+        <Modal size="auto" title={'Unlocks'} opened={selectOptionsModalOpen} onClose={() => closeSelectOptionModal()} maw={600}>
             <Container fluid>
                 <Switch.Group
                     defaultValue={options}
