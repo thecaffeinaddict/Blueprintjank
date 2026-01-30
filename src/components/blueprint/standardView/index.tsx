@@ -1,5 +1,5 @@
-import React, {useEffect, useMemo, useState} from "react";
-import {Carousel} from "@mantine/carousel";
+import React, { useEffect, useMemo, useState } from "react";
+import { Carousel } from "@mantine/carousel";
 import {
     Accordion,
     AppShell,
@@ -18,29 +18,29 @@ import {
     Tabs,
     Text
 } from "@mantine/core";
-import {toHeaderCase} from "js-convert-case";
-import {useDisclosure, useViewportSize} from "@mantine/hooks";
-import {Boss, BoosterPack, Tag as RenderTag, Voucher} from "../../Rendering/gameElements.tsx";
-import {BuyMetaData} from "../../../modules/classes/BuyMetaData.ts";
-import {BuyWrapper} from "../../buyerWrapper.tsx";
-import {LOCATIONS, LOCATION_TYPES, blinds, tagDescriptions} from "../../../modules/const.ts";
-import { useCardStore} from "../../../modules/state/store.ts";
-import {GameCard} from "../../Rendering/cards.tsx";
+import { toHeaderCase } from "js-convert-case";
+import { useDisclosure, useViewportSize } from "@mantine/hooks";
+import { Boss, BoosterPack, Tag as RenderTag, Voucher } from "../../Rendering/gameElements.tsx";
+import { BuyMetaData } from "../../../modules/classes/BuyMetaData.ts";
+import { BuyWrapper } from "../../buyerWrapper.tsx";
+import { LOCATIONS, LOCATION_TYPES, blinds, tagDescriptions } from "../../../modules/const.ts";
+import { useCardStore } from "../../../modules/state/store.ts";
+import { GameCard } from "../../Rendering/cards.tsx";
 import Header from "../layout/header.tsx";
 import NavBar from "../layout/navbar.tsx";
-import {Aside} from "../layout/aside.tsx";
+import { Aside } from "../layout/aside.tsx";
 import Footer from "../layout/footer.tsx";
 import HomePage from "../homePage/homepage.tsx";
 import Index from "../textView";
 import Simple from "../simpleView/simple.tsx";
 import JamlView from "../jamlView/JamlView.tsx";
 import SnapshotModal from "../snapshotView/SnapshotView.tsx";
-import {useSeedResultsContainer} from "../../../modules/state/analysisResultProvider.tsx";
-import type {Blinds} from "../../../modules/state/store.ts";
-import type {Tag} from "../../../modules/balatrots/enum/Tag.ts";
-import type {Ante, Pack} from "../../../modules/ImmolateWrapper/CardEngines/Cards.ts";
-import type {EmblaCarouselType} from 'embla-carousel';
-import {useDownloadSeedResults} from "../../../modules/state/downloadProvider.tsx";
+import { useSeedResultsContainer } from "../../../modules/state/analysisResultProvider.tsx";
+import type { Blinds } from "../../../modules/state/store.ts";
+import type { Tag } from "../../../modules/balatrots/enum/Tag.ts";
+import type { Ante, Pack } from "../../../modules/ImmolateWrapper/CardEngines/Cards.ts";
+import type { EmblaCarouselType } from 'embla-carousel';
+import { useDownloadSeedResults } from "../../../modules/state/downloadProvider.tsx";
 
 function QueueCarousel({ queue, tabName }: { queue: Array<any>, tabName: string }) {
     const selectedBlind = useCardStore(state => state.applicationState.selectedBlind);
@@ -195,7 +195,7 @@ function AntePanel({ ante, tabName, timeTravelVoucherOffset }: {
     )
 }
 type CustomDetailsType = {
-    [K in Tag]?: { renderer: (ante: Ante, navigateToMiscSource: (source: string)=>void) => React.ReactNode  };
+    [K in Tag]?: { renderer: (ante: Ante, navigateToMiscSource: (source: string) => void) => React.ReactNode };
 };
 const CustomDetails: CustomDetailsType = {
     "Uncommon Tag": {
@@ -409,13 +409,13 @@ function SeedExplorer() {
         return 0
     }, []);
 
-    if(!SeedResults){
+    if (!SeedResults) {
         return null;
     }
 
     const pool = SeedResults.antes
     const availableAntes = Object.keys(pool).map(Number).sort((a, b) => a - b);
-    
+
     // Ensure selectedAnte is valid, default to 1 if undefined/null or not found (but allow ante 0 if explicitly selected)
     let itemPool = selectedAnte;
     if (selectedAnte == null || selectedAnte === undefined || !pool[itemPool] || availableAntes.length === 0) {
@@ -444,7 +444,7 @@ function SeedExplorer() {
                 />
                 <SegmentedControl
                     value={selectedBlind}
-                    onChange={(v)=>setSelectedBlind(v as Blinds)}
+                    onChange={(v) => setSelectedBlind(v as Blinds)}
                     fullWidth
                     radius="xl"
                     size={width > 600 ? 'sm' : 'xs'}
@@ -519,16 +519,23 @@ function SeedExplorer() {
     )
 }
 
+import { MantineProvider } from "@mantine/core";
+import { BalatroTheme } from "../../../themes/Balatro.ts";
+
 function Main() {
     const SeedResults = useSeedResultsContainer()
     const viewMode = useCardStore(state => state.applicationState.viewMode);
     return (
         <AppShell.Main>
-            {!SeedResults && <HomePage/>}
+            {!SeedResults && <HomePage />}
             {SeedResults && viewMode === 'blueprint' && <SeedExplorer />}
             {SeedResults && viewMode === 'text' && <Index />}
             {SeedResults && viewMode === 'simple' && <Simple />}
-            {SeedResults && viewMode === 'custom' && <JamlView />}
+            {SeedResults && viewMode === 'custom' && (
+                <MantineProvider theme={BalatroTheme} defaultColorScheme="dark">
+                    <JamlView />
+                </MantineProvider>
+            )}
             {SeedResults && <SnapshotModal />}
         </AppShell.Main>
     )
@@ -546,7 +553,7 @@ export function Blueprint() {
     const outputOpened = useCardStore(state => state.applicationState.asideOpen);
     const download = useDownloadSeedResults()
     useEffect(() => {
-        if(typeof window !== 'undefined') {
+        if (typeof window !== 'undefined') {
             window.saveSeedDebug = download
         }
     }, [download]);
@@ -588,7 +595,7 @@ export function Blueprint() {
             padding="md"
         >
             <Header />
-            <NavBar/>
+            <NavBar />
             <Main />
             <Aside />
             <AppShell.Footer>
