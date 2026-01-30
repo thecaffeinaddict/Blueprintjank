@@ -784,7 +784,7 @@ function JamlView() {
     };
 
     return (
-        <>
+        <Stack h="100%" gap={0} w="100%" style={{ overflow: 'hidden' }}>
 
             <Paper p={4} mb="xs" style={{ backgroundColor: CONFIG_BG.bar, border: 'none' }}>
                 <Group justify="space-between" gap="xs" align="center">
@@ -889,10 +889,11 @@ function JamlView() {
                     gap="xs"
                     className="no-scrollbar"
                     style={{
+                        flex: 1,
+                        minHeight: 0,
                         scrollSnapType: 'y mandatory',
                         scrollBehavior: 'smooth',
                         overflowY: 'auto',
-                        maxHeight: 'calc(100vh - 180px)',
                     }}
                 >
                     {selectedAntesArray.map((anteNum, index) => {
