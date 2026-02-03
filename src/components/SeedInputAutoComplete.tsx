@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Autocomplete, Button, Group, Modal, NativeSelect, Paper, Stack, Text, Textarea, useMantineTheme } from "@mantine/core";
+import { Autocomplete, Button, Group, Modal, NativeSelect, Stack, Text, Textarea, useMantineTheme } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { IconUpload } from "@tabler/icons-react";
 import { SeedsWithLegendary, popularSeeds } from "../modules/const.ts";
@@ -16,14 +16,13 @@ export function QuickAnalyze() {
     const sectionWidth = 130;
     const select = (
         <NativeSelect
-            rightSectionWidth={28}
+            variant="unstyled"
             styles={{
                 input: {
                     fontWeight: 500,
-                    borderTopLeftRadius: 0,
-                    borderBottomLeftRadius: 0,
                     width: sectionWidth,
-                    marginRight: -2,
+                    height: '100%',
+                    paddingRight: 'var(--mantine-spacing-sm)',
                 },
             }}
             value={deck}
@@ -72,29 +71,9 @@ export function QuickAnalyze() {
     );
 
     return (
-        <Paper p={{ base: 'xs', sm: 'sm' }} radius={'md'}>
-            <Stack gap="sm">
-                {isMobile ? (
-                    <>
-                        <Autocomplete
-                            label="Analyze Seed"
-                            placeholder="Enter Seed"
-                            data={[
-                                {
-                                    group: 'Popular Seeds',
-                                    items: popularSeeds
-                                }, {
-                                    group: 'Generated Seeds With Legendary Jokers',
-                                    items: SeedsWithLegendary
-
-                                }
-                            ]}
-                            value={seed}
-                            onChange={(e) => setSeed(e)}
-                        />
-                        {deckSelectStandalone}
-                    </>
-                ) : (
+        <Stack gap="sm" w="100%">
+            {isMobile ? (
+                <>
                     <Autocomplete
                         label="Analyze Seed"
                         placeholder="Enter Seed"
@@ -110,29 +89,59 @@ export function QuickAnalyze() {
                         ]}
                         value={seed}
                         onChange={(e) => setSeed(e)}
-                        rightSection={select}
-                        rightSectionWidth={sectionWidth}
-                        styles={{
-                            input: {
-                                minWidth: 0
-                            }
+                        onOptionSubmit={(val) => {
+                            setSeed(val);
+                            setStart(true);
                         }}
                     />
-                )}
-                <Button
-                    fullWidth
-                    onClick={() => setStart(seed.length >= 5)}
-                    size={isMobile ? 'sm' : 'md'}
-                >
-                    Analyze Seed
-                </Button>
-            </Stack>
-        </Paper>
+                    {deckSelectStandalone}
+                </>
+            ) : (
+                <Autocomplete
+                    label="Analyze Seed"
+                    placeholder="Enter Seed"
+                    data={[
+                        {
+                            group: 'Popular Seeds',
+                            items: popularSeeds
+                        }, {
+                            group: 'Generated Seeds With Legendary Jokers',
+                            items: SeedsWithLegendary
+
+                        }
+                    ]}
+                    value={seed}
+                    onChange={(e) => setSeed(e)}
+                    onOptionSubmit={(val) => {
+                        setSeed(val);
+                        setStart(true);
+                    }}
+                    rightSection={select}
+                    rightSectionWidth={sectionWidth}
+                    styles={{
+                        input: {
+                            minWidth: 0,
+                        },
+                        section: {
+                            borderLeft: '1px solid var(--mantine-color-default-border)',
+                        }
+                    }}
+                />
+            )}
+            <Button
+                fullWidth
+                onClick={() => setStart(seed.length >= 5)}
+                size={isMobile ? 'sm' : 'md'}
+            >
+                Analyze Seed
+            </Button>
+        </Stack>
     );
 
 }
 
-export default function SeedInputAutoComplete({ seed, setSeed, onBulkImport }: { seed: string, setSeed: (seed: string) => void, onBulkImport?: (seeds: string[]) => void }) {
+export default function SeedInputAutoComplete({ seed, setSeed, onBulkImport }: { seed: string, setSeed: (seed: string) => void, onBulkImport?: (seeds: Array<string>) => void }) {
+    const setStart = useCardStore(state => state.setStart);
     const theme = useMantineTheme();
     const [bulkOpened, { open: openBulk, close: closeBulk }] = useDisclosure(false);
     const [bulkText, setBulkText] = useState('');
@@ -170,6 +179,14 @@ export default function SeedInputAutoComplete({ seed, setSeed, onBulkImport }: {
                 placeholder={'Enter Seed'}
                 value={seed}
                 onChange={handleChange}
+                onOptionSubmit={(val) => {
+                    if (val === '📋 Seed List...') {
+                        openBulk();
+                    } else {
+                        setSeed(val);
+                        setStart(true);
+                    }
+                }}
                 size="sm"
                 data={[
                     {

@@ -1,3 +1,4 @@
+import React from "react";
 import {
     AppShell,
     Box,
@@ -14,9 +15,7 @@ import {
     Tooltip,
     useMantineTheme
 } from "@mantine/core";
-import { DeckBackIcon } from "../../Rendering/deckStakeIcons.tsx";
-import { StakeChipIcon } from "../../Rendering/deckStakeIcons.tsx";
-import React from "react";
+import { DeckBackIcon, StakeChipIcon } from "../../Rendering/deckStakeIcons.tsx";
 import {
     IconFileText,
     IconJoker,
@@ -298,7 +297,7 @@ export default function NavBar() {
                 <Button.Group w={'100%'} mb="xs">
                     <Button variant="default" c={'blue'} size="sm" onClick={() => setCardsPerAnte(50)}>50</Button>
                     <Button variant="default" c={'red'} size="sm" onClick={() => setCardsPerAnte(Math.max(cardsPerAnte - 50, 0))}>-50</Button>
-                    <Button.GroupSection flex={1} variant="default" bg={theme.colors.dark[0]} miw={60} style={{ fontSize: 'var(--mantine-font-size-sm)', padding: '2px 8px' }}>
+                    <Button.GroupSection flex={1} variant="default" miw={60} style={{ fontSize: 'var(--mantine-font-size-sm)', padding: '2px 8px' }}>
                         {cardsPerAnte}
                     </Button.GroupSection>
                     <Button variant="default" c={'green'} size="sm"
@@ -312,7 +311,7 @@ export default function NavBar() {
                 <Button.Group w={'100%'} mb="xs">
                     <Button variant="default" c={'blue'} size="sm" onClick={() => setMiscMaxSource(15)}>15</Button>
                     <Button variant="default" c={'red'} size="sm" onClick={() => setMiscMaxSource(Math.max(maxMiscCardSource - 5, 0))}>-5</Button>
-                    <Button.GroupSection flex={1} variant="default" bg={theme.colors.dark[0]} miw={60} style={{ fontSize: 'var(--mantine-font-size-sm)', padding: '2px 8px' }}>
+                    <Button.GroupSection flex={1} variant="default" miw={60} style={{ fontSize: 'var(--mantine-font-size-sm)', padding: '2px 8px' }}>
                         {maxMiscCardSource}
                     </Button.GroupSection>
                     <Button variant="default" c={'green'} size="sm"
