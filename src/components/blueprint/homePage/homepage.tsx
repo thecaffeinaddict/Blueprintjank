@@ -64,7 +64,7 @@ interface FeatureProps {
 export function Feature({ icon: Icon, title, description }: FeatureProps) {
     const theme = useMantineTheme();
     return (
-        <Paper p={'1rem'} bg={theme.colors.dark[0]}>
+        <Paper withBorder p={'1rem'} shadow={'lg'} bg={theme.colors.dark[0]}>
             <ThemeIcon variant="light" size={40} radius={40}>
                 <Icon size={18} stroke={1.5} />
             </ThemeIcon>
