@@ -5,7 +5,7 @@ import { options } from "../modules/const.ts";
 export default function UnlocksModal() {
     const selectOptionsModalOpen = useCardStore(state => state.applicationState.selectOptionsModalOpen);
     const closeSelectOptionModal = useCardStore(state => state.closeSelectOptionModal);
-    const selectedOptions = useCardStore(state => state.immolateState.selectedOptions);
+    const selectedOptions = useCardStore(state => state.engineState.selectedOptions);
     const setSelectedOptions = useCardStore(state => state.setSelectedOptions);
     if (!selectOptionsModalOpen) return null;
     return (

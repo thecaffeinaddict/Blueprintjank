@@ -6,21 +6,22 @@ import {
     IconShoppingCart,
     IconUser
 } from '@tabler/icons-react';
-import {Container, Paper, SimpleGrid, Space, Stack, Text, ThemeIcon, Title, useMantineTheme} from '@mantine/core';
+import { Container, Paper, SimpleGrid, Space, Stack, Text, ThemeIcon, Title, useMantineTheme } from '@mantine/core';
 import React from "react";
-import {QuickAnalyze} from "../../SeedInputAutoComplete.tsx";
+import { QuickAnalyze } from "../../SeedInputAutoComplete.tsx";
 import classes from './Homepage.module.css';
 import HeroClasses from "./Hero.module.css"
 import type {
     Icon,
-    IconProps} from '@tabler/icons-react';
+    IconProps
+} from '@tabler/icons-react';
 
 export const Features = [
     {
         icon: IconGauge,
         title: 'Accuracy',
         description:
-            'Blueprint uses Immolate to analyze Balatro seeds as opposed to a home grown approach this allows for more accurate results and a more reliable experience',
+            'Blueprint uses a sophisticated game engine to analyze Balatro seeds as opposed to a home grown approach this allows for more accurate results and a more reliable experience',
     },
     {
         icon: IconUser,
@@ -55,17 +56,17 @@ export const Features = [
 ];
 
 interface FeatureProps {
-    icon:  React.ForwardRefExoticComponent<IconProps & React.RefAttributes<Icon>>;
+    icon: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<Icon>>;
     title: React.ReactNode;
     description: React.ReactNode;
 }
 
-export function Feature({icon: Icon, title, description}: FeatureProps) {
+export function Feature({ icon: Icon, title, description }: FeatureProps) {
     const theme = useMantineTheme();
     return (
         <Paper p={'1rem'} bg={theme.colors.dark[0]}>
             <ThemeIcon variant="light" size={40} radius={40}>
-                <Icon size={18} stroke={1.5}/>
+                <Icon size={18} stroke={1.5} />
             </ThemeIcon>
             <Text mt="sm" mb={7}>
                 {title}
@@ -99,14 +100,14 @@ function HeroText() {
 
                 <div className={HeroClasses.controls}>
                     <Stack gap={'sm'}>
-                        <QuickAnalyze/>
+                        <QuickAnalyze />
                         <Text ta={'right'} fz={'sm'} c={'dimmed'}>
                             Want to search for seeds instead ?
                             Try {" "}
                             <Text
                                 component={'a'}
                                 fz={'sm'}
-                                style={{ textDecoration: 'underline'}}
+                                style={{ textDecoration: 'underline' }}
                                 href={'https://github.com/OptimusPi/MotelyJAML/releases/tag/v1.0.0'}
                             >
                                 MotelyJAML
@@ -124,18 +125,18 @@ function HeroText() {
 
 export function FeaturesGrid() {
     const theme = useMantineTheme();
-    const features = Features.map((feature, index) => <Feature {...feature} key={index}/>);
+    const features = Features.map((feature, index) => <Feature {...feature} key={index} />);
 
     return (
         <Container className={classes.wrapper}>
-            <HeroText/>
-            <Space my={'xl'}/>
+            <HeroText />
+            <Space my={'xl'} />
             <Paper p={'2rem'} bg={theme.colors.dark[0]}>
                 <SimpleGrid
                     mt={60}
-                    cols={{base: 1, sm: 2, md: 3}}
-                    spacing={{base: 'xl', md: 50}}
-                    verticalSpacing={{base: 'xl', md: 50}}
+                    cols={{ base: 1, sm: 2, md: 3 }}
+                    spacing={{ base: 'xl', md: 50 }}
+                    verticalSpacing={{ base: 'xl', md: 50 }}
                 >
                     {features}
                 </SimpleGrid>
@@ -148,7 +149,7 @@ export function FeaturesGrid() {
 export default function HomePage() {
     return (
         <Container fluid>
-            <FeaturesGrid/>
+            <FeaturesGrid />
         </Container>
     )
 }

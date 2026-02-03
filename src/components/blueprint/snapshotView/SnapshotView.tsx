@@ -1,4 +1,4 @@
-import React, {useMemo} from "react";
+import React, { useMemo } from "react";
 import {
     Box,
     Divider,
@@ -13,12 +13,12 @@ import {
     Title,
     Tooltip
 } from "@mantine/core";
-import {Joker_Final} from "../../../modules/ImmolateWrapper/CardEngines/Cards.ts";
-import {Boss, Voucher} from "../../Rendering/gameElements.tsx";
-import {JokerCard} from "../../Rendering/cards.tsx";
-import {useCardStore} from "../../../modules/state/store.ts";
-import {useSeedResultsContainer} from "../../../modules/state/analysisResultProvider.tsx";
-import type {Ante, CardTuple} from "../../../modules/ImmolateWrapper/CardEngines/Cards.ts";
+import { Joker_Final } from "../../../modules/GameEngine/CardEngines/Cards.ts";
+import { Boss, Voucher } from "../../Rendering/gameElements.tsx";
+import { JokerCard } from "../../Rendering/cards.tsx";
+import { useCardStore } from "../../../modules/state/store.ts";
+import { useSeedResultsContainer } from "../../../modules/state/analysisResultProvider.tsx";
+import type { Ante, CardTuple } from "../../../modules/GameEngine/CardEngines/Cards.ts";
 
 
 // number suffix 1st, 2nd, 3rd, 4th, 5th, 6th, 7th, 8th, 9th, 10th
@@ -78,12 +78,12 @@ export default function SnapshotModal() {
     const opened = useCardStore(state => state.applicationState.snapshotModalOpen);
     const close = useCardStore(state => state.closeSnapshotModal);
 
-    const {bosses: Bosses, vouchers: Vouchers, uniqueJokers} = useMemo(() => {
+    const { bosses: Bosses, vouchers: Vouchers, uniqueJokers } = useMemo(() => {
         const bosses: Array<{ name: string, ante: number }> = [];
         const vouchers: Array<{ name: string, ante: number }> = [];
         const jokerMap = new Map<string, UniqueJokerData>();
 
-        if (!SeedResults) return {bosses, vouchers, uniqueJokers: []};
+        if (!SeedResults) return { bosses, vouchers, uniqueJokers: [] };
 
         const sortedAntes = Object.entries(SeedResults.antes)
             .sort(([a], [b]) => {
@@ -97,10 +97,10 @@ export default function SnapshotModal() {
         sortedAntes.forEach(([anteStr, anteData]: [string, Ante]) => {
             const anteNum = Number(anteStr);
             if (anteData.boss) {
-                bosses.push({name: anteData.boss, ante: anteNum});
+                bosses.push({ name: anteData.boss, ante: anteNum });
             }
             if (anteData.voucher) {
-                vouchers.push({name: anteData.voucher, ante: anteNum});
+                vouchers.push({ name: anteData.voucher, ante: anteNum });
             }
 
             const processJoker = (item: CardTuple, source: string, sourceType: 'Shop' | 'Pack' | 'Misc', index: number) => {
@@ -231,7 +231,7 @@ export default function SnapshotModal() {
                     <Title order={3} mb="md">Jokers</Title>
                     <SimpleGrid cols={{ base: 2, sm: 4, lg: 6 }}>
                         {sortedUniqueJokers.map((data, index) => (
-                            <HoverCard key={index}  shadow="md" openDelay={300} closeOnClickOutside={true}>
+                            <HoverCard key={index} shadow="md" openDelay={300} closeOnClickOutside={true}>
                                 <HoverCard.Target>
                                     <Box w={'fit-content'}>
                                         <JokerCard card={new Joker_Final({

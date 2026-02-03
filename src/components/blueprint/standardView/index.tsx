@@ -38,7 +38,7 @@ import SnapshotModal from "../snapshotView/SnapshotView.tsx";
 import { useSeedResultsContainer } from "../../../modules/state/analysisResultProvider.tsx";
 import type { Blinds } from "../../../modules/state/store.ts";
 import type { Tag } from "../../../modules/balatrots/enum/Tag.ts";
-import type { Ante, Pack } from "../../../modules/ImmolateWrapper/CardEngines/Cards.ts";
+import type { Ante, Pack } from "../../../modules/GameEngine/CardEngines/Cards.ts";
 import type { EmblaCarouselType } from 'embla-carousel';
 import { useDownloadSeedResults } from "../../../modules/state/downloadProvider.tsx";
 

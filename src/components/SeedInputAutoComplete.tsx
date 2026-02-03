@@ -1,15 +1,15 @@
-import React, {useCallback, useState} from "react";
-import {Autocomplete, Button, Group, Modal, NativeSelect, Paper, Stack, Text, Textarea, useMantineTheme} from "@mantine/core";
-import {useDisclosure, useMediaQuery} from "@mantine/hooks";
-import {IconUpload} from "@tabler/icons-react";
-import {SeedsWithLegendary, popularSeeds} from "../modules/const.ts";
-import {useCardStore} from "../modules/state/store.ts";
+import React, { useCallback, useState } from "react";
+import { Autocomplete, Button, Group, Modal, NativeSelect, Paper, Stack, Text, Textarea, useMantineTheme } from "@mantine/core";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
+import { IconUpload } from "@tabler/icons-react";
+import { SeedsWithLegendary, popularSeeds } from "../modules/const.ts";
+import { useCardStore } from "../modules/state/store.ts";
 
 
 export function QuickAnalyze() {
-    const seed = useCardStore(state => state.immolateState.seed);
+    const seed = useCardStore(state => state.engineState.seed);
     const setSeed = useCardStore(state => state.setSeed);
-    const deck = useCardStore(state => state.immolateState.deck);
+    const deck = useCardStore(state => state.engineState.deck);
     const setDeck = useCardStore(state => state.setDeck);
     const setStart = useCardStore(state => state.setStart);
     const isMobile = useMediaQuery('(max-width: 600px)');
@@ -132,11 +132,11 @@ export function QuickAnalyze() {
 
 }
 
-export default function SeedInputAutoComplete({seed, setSeed, onBulkImport}: { seed: string, setSeed: (seed: string) => void, onBulkImport?: (seeds: string[]) => void }) {
+export default function SeedInputAutoComplete({ seed, setSeed, onBulkImport }: { seed: string, setSeed: (seed: string) => void, onBulkImport?: (seeds: string[]) => void }) {
     const theme = useMantineTheme();
     const [bulkOpened, { open: openBulk, close: closeBulk }] = useDisclosure(false);
     const [bulkText, setBulkText] = useState('');
-    
+
     const handleBulkImport = useCallback(() => {
         const parsed = bulkText
             .split(/[\n,\s]+/)
@@ -153,7 +153,7 @@ export default function SeedInputAutoComplete({seed, setSeed, onBulkImport}: { s
             setBulkText('');
         }
     }, [bulkText, closeBulk, onBulkImport, setSeed]);
-    
+
     const handleChange = useCallback((value: string) => {
         if (value === '📋 Seed List...') {
             openBulk();
@@ -161,7 +161,7 @@ export default function SeedInputAutoComplete({seed, setSeed, onBulkImport}: { s
             setSeed(value);
         }
     }, [setSeed, openBulk]);
-    
+
     return (
         <>
             <Autocomplete
@@ -203,7 +203,7 @@ export default function SeedInputAutoComplete({seed, setSeed, onBulkImport}: { s
                     }
                 }}
             />
-            
+
             <Modal opened={bulkOpened} onClose={closeBulk} title="Bulk Import Seeds" size="md">
                 <Stack gap="md">
                     <Text size="sm" c="dimmed">
@@ -229,14 +229,14 @@ export default function SeedInputAutoComplete({seed, setSeed, onBulkImport}: { s
                                 reader.readAsText(files[0]);
                             }
                         }}
-                        styles={{ 
-                            input: { 
+                        styles={{
+                            input: {
                                 fontFamily: 'monospace',
                                 backgroundColor: theme.colors.dark[7],
                                 color: theme.colors.gray[3],
                                 fontSize: '14px',
                                 letterSpacing: '0.5px'
-                            } 
+                            }
                         }}
                     />
                     <Group justify="space-between">

@@ -4,8 +4,8 @@ import type {
     Planet_Final,
     Spectral_Final,
     Tarot_Final
-} from "../ImmolateWrapper/CardEngines/Cards.ts";
-import type {Blinds} from "../state/store.ts";
+} from "../GameEngine/CardEngines/Cards.ts";
+import type { Blinds } from "../state/store.ts";
 
 
 
@@ -20,7 +20,7 @@ export class BuyMetaData {
     name?: string;
     card?: Card_Final | Joker_Final | Spectral_Final | Tarot_Final | Planet_Final
 
-    constructor({location, locationType, index, ante, blind, card, link, name}: {
+    constructor({ location, locationType, index, ante, blind, card, link, name }: {
         location: string,
         locationType: string,
         index: number,

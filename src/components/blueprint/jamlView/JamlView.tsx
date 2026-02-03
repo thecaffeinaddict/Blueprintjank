@@ -24,7 +24,7 @@ import { DragScroll } from "../../DragScroller.tsx";
 import { GameCard } from "../../Rendering/cards.tsx";
 import { Boss, Tag as RenderTag, Voucher } from "../../Rendering/gameElements.tsx";
 import { JamlEditor } from "./JamlEditor.tsx";
-import type { Ante, Pack } from "../../../modules/ImmolateWrapper/CardEngines/Cards.ts";
+import type { Ante, Pack } from "../../../modules/GameEngine/CardEngines/Cards.ts";
 
 // Extract all antes referenced in JAML clauses
 function extractAntesFromJaml(jamlConfig: any): Array<number> {
@@ -518,8 +518,8 @@ AnteSection.displayName = 'AnteSection';
 function JamlView() {
     const theme = useMantineTheme();
     const SeedResults = useSeedResultsContainer();
-    const seed = useCardStore(state => state.immolateState.seed);
-    const analyzeState = useCardStore(state => state.immolateState);
+    const seed = useCardStore(state => state.engineState.seed);
+    const analyzeState = useCardStore(state => state.engineState);
     const options = useSeedOptionsContainer();
     const currentSeed = analyzeState.seed;
 

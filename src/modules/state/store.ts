@@ -4,11 +4,11 @@ import { immer } from "zustand/middleware/immer";
 import { LOCATIONS, LOCATION_TYPES, options } from "../const.ts";
 import type { StateStorage } from "zustand/middleware";
 import type { BuyMetaData } from "../classes/BuyMetaData.ts";
-import type { SeedResultsContainer } from "../ImmolateWrapper/CardEngines/Cards.ts";
+import type { SeedResultsContainer } from "../GameEngine/CardEngines/Cards.ts";
 
 export type Blinds = 'smallBlind' | 'bigBlind' | 'bossBlind';
 export interface InitialState {
-    immolateState: {
+    engineState: {
         seed: string;
         deck: string;
         cardsPerAnte: number;
@@ -111,7 +111,7 @@ interface StoreActions {
 }
 export interface CardStore extends InitialState, StoreActions { }
 const initialState: InitialState = {
-    immolateState: {
+    engineState: {
         seed: '',
         deck: 'Ghost Deck',
         cardsPerAnte: 50,
@@ -168,23 +168,23 @@ const initialState: InitialState = {
 const blueprintStorage: StateStorage = {
     // @ts-ignore
     getItem: (): string => {
-        const immolateState = getImmolateStateFromUrl();
+        const engineState = getEngineStateFromUrl();
 
 
         // Also read viewMode and selectedAnte from URL
         const params = new URLSearchParams(window.location.search);
         const viewMode = params.get('view') || initialState.applicationState.viewMode;
         const selectedAnte = parseInt(params.get('ante') || '1');
-        
+
         const results = {
             state: {
-                immolateState: {
-                    ...initialState.immolateState,
-                    ...immolateState
+                engineState: {
+                    ...initialState.engineState,
+                    ...engineState
                 },
                 applicationState: {
                     ...initialState.applicationState,
-                    start: !!immolateState.seed,
+                    start: !!engineState.seed,
                     viewMode,
                     selectedAnte,
                 },
@@ -200,13 +200,13 @@ const blueprintStorage: StateStorage = {
         const parsedValue = JSON.parse(newValue);
         const params = new URLSearchParams(window.location.search);
         const ignoreKeys = ['selectedOptions', 'cardsPerAnte', 'showmanOwned', 'gameVersion']; // Keys to ignore when updating URL
-        // Update URL with immolateState values
-        Object.entries(parsedValue.state.immolateState).forEach(([key, value]) => {
+        // Update URL with engineState values
+        Object.entries(parsedValue.state.engineState).forEach(([key, value]) => {
             if (!ignoreKeys.includes(key)) { // Don't include selectedOptions in URL
                 params.set(key, String(value));
             }
         });
-        
+
         // Also sync viewMode and selectedAnte to URL
         if (parsedValue.state.applicationState?.viewMode) {
             params.set('view', parsedValue.state.applicationState.viewMode);
@@ -222,31 +222,31 @@ const blueprintStorage: StateStorage = {
     },
 };
 
-// Helper functions to manage immolateState in URL
-function getImmolateStateFromUrl() {
+// Helper functions to manage engineState in URL
+function getEngineStateFromUrl() {
     const params = new URLSearchParams(window.location.search);
     // Backward compatibility: if old 'antes' param exists, use it as maxAnte with minAnte=0
     const oldAntes = params.get('antes');
-    const minAnte = oldAntes 
-        ? 0 
-        : parseInt(params.get('minAnte') ?? initialState.immolateState.minAnte.toString());
-    const maxAnte = oldAntes 
-        ? parseInt(oldAntes) 
-        : parseInt(params.get('maxAnte') ?? initialState.immolateState.maxAnte.toString());
-    
+    const minAnte = oldAntes
+        ? 0
+        : parseInt(params.get('minAnte') ?? initialState.engineState.minAnte.toString());
+    const maxAnte = oldAntes
+        ? parseInt(oldAntes)
+        : parseInt(params.get('maxAnte') ?? initialState.engineState.maxAnte.toString());
+
     return {
-        seed: params.get('seed') || initialState.immolateState.seed,
-        deck: params.get('deck') || initialState.immolateState.deck,
-        cardsPerAnte: parseInt(params.get('cardsPerAnte') || initialState.immolateState.cardsPerAnte.toString()),
+        seed: params.get('seed') || initialState.engineState.seed,
+        deck: params.get('deck') || initialState.engineState.deck,
+        cardsPerAnte: parseInt(params.get('cardsPerAnte') || initialState.engineState.cardsPerAnte.toString()),
         minAnte,
         maxAnte,
-        stake: params.get('stake') || initialState.immolateState.stake,
-        gameVersion: params.get('gameVersion') || initialState.immolateState.gameVersion,
+        stake: params.get('stake') || initialState.engineState.stake,
+        gameVersion: params.get('gameVersion') || initialState.engineState.gameVersion,
     };
 }
 
 
-export const useCardStore = create<CardStore,[
+export const useCardStore = create<CardStore, [
     ["zustand/devtools", never], ["zustand/persist", unknown], ["zustand/immer", never]
 ]>(
     devtools(
@@ -258,40 +258,40 @@ export const useCardStore = create<CardStore,[
                             prev.applicationState.viewMode = viewMode;
                         }, undefined, 'Global/SetViewMode'),
                         setSeed: (seed) => set((prev) => {
-                            prev.immolateState.seed = seed.toUpperCase();
+                            prev.engineState.seed = seed.toUpperCase();
                             prev.shoppingState = initialState.shoppingState
                             prev.searchState = initialState.searchState;
                             prev.applicationState.hasSettingsChanged = true;
                         }, undefined, 'Global/SetSeed'),
                         setDeck: (deck: string) => set((prev) => {
-                            prev.immolateState.deck = deck
+                            prev.engineState.deck = deck
                             prev.applicationState.hasSettingsChanged = true;
                         }, undefined, 'Global/SetDeck'),
                         setUseCardPeek: (useCardPeek) => set((prev) => {
                             prev.applicationState.useCardPeek = useCardPeek
                         }, undefined, 'Global/SetCardPeek'),
                         setCardsPerAnte: (cardsPerAnte) => set((prev) => {
-                            prev.immolateState.cardsPerAnte = cardsPerAnte
+                            prev.engineState.cardsPerAnte = cardsPerAnte
                             prev.applicationState.hasSettingsChanged = true;
                         }, undefined, 'Global/SetCardsPerAnte'),
                         setMinAnte: (minAnte) => set((prev) => {
-                            prev.immolateState.minAnte = minAnte
+                            prev.engineState.minAnte = minAnte
                             prev.applicationState.hasSettingsChanged = true;
                         }, undefined, 'Global/SetMinAnte'),
                         setMaxAnte: (maxAnte) => set((prev) => {
-                            prev.immolateState.maxAnte = maxAnte
+                            prev.engineState.maxAnte = maxAnte
                             prev.applicationState.hasSettingsChanged = true;
                         }, undefined, 'Global/SetMaxAnte'),
                         setStake: (stake) => set((prev) => {
-                            prev.immolateState.stake = stake
+                            prev.engineState.stake = stake
                             prev.applicationState.hasSettingsChanged = true;
                         }, undefined, 'Global/SetStake'),
                         setGameVersion: (gameVersion) => set((prev) => {
-                            prev.immolateState.gameVersion = gameVersion
+                            prev.engineState.gameVersion = gameVersion
                             prev.applicationState.hasSettingsChanged = true;
                         }, undefined, 'Global/SetGameVersion'),
                         setSelectedOptions: (selectedOptions) => set((prev) => {
-                            prev.immolateState.selectedOptions = selectedOptions
+                            prev.engineState.selectedOptions = selectedOptions
                             prev.applicationState.hasSettingsChanged = true;
                         }, undefined, 'Global/SetSelectedOptions'),
 
@@ -439,7 +439,7 @@ export const useCardStore = create<CardStore,[
                 name: 'blueprint-store-v2',
                 version: 2,
                 partialize: (state) => ({
-                    immolateState: state.immolateState,
+                    engineState: state.engineState,
                     shoppingState: {
                         buys: state.shoppingState.buys,
                         sells: state.shoppingState.sells

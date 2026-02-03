@@ -1,5 +1,5 @@
 import React from 'react';
-import { MiscCardSource } from "../modules/ImmolateWrapper";
+import { MiscCardSource } from "../modules/GameEngine";
 import { Accordion, Box, Center, Group, Paper, Text, Title, useMantineTheme } from "@mantine/core";
 import { IconPlus, IconMinus } from "@tabler/icons-react";
 import { Tooltip } from "@mantine/core";
@@ -14,7 +14,7 @@ import { GameCard } from "./Rendering/cards.tsx";
 import { BoosterPack, Voucher } from "./Rendering/gameElements.tsx";
 import { Boss } from "./Rendering/gameElements.tsx";
 import { Tag } from "./Rendering/gameElements.tsx";
-import { Joker_Final, StandardCard_Final } from "../modules/ImmolateWrapper/CardEngines/Cards.ts";
+import { Joker_Final, StandardCard_Final } from "../modules/GameEngine/CardEngines/Cards.ts";
 
 export default function MiscCardSourcesDisplay({ miscSources, boosterQueue, bossQueue, tagQueue, voucherQueue, wheelQueue, auraQueue, draws, onAddSource, addedSourceNames }: {
     miscSources?: MiscCardSource[],

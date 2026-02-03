@@ -14,8 +14,8 @@ import {
     Tooltip,
     useMantineTheme
 } from "@mantine/core";
-import {DeckBackIcon} from "../../Rendering/deckStakeIcons.tsx";
-import {StakeChipIcon} from "../../Rendering/deckStakeIcons.tsx";
+import { DeckBackIcon } from "../../Rendering/deckStakeIcons.tsx";
+import { StakeChipIcon } from "../../Rendering/deckStakeIcons.tsx";
 import React from "react";
 import {
     IconFileText,
@@ -24,11 +24,11 @@ import {
     IconListSearch,
     IconPlayCard
 } from "@tabler/icons-react";
-import {useCardStore} from "../../../modules/state/store.ts";
+import { useCardStore } from "../../../modules/state/store.ts";
 import UnlocksModal from "../../unlocksModal.tsx";
 import FeaturesModal from "../../FeaturesModal.tsx";
-import {RerollCalculatorModal} from "../../RerollCalculatorModal.tsx";
-import {GaEvent} from "../../../modules/useGA.ts";
+import { RerollCalculatorModal } from "../../RerollCalculatorModal.tsx";
+import { GaEvent } from "../../../modules/useGA.ts";
 import SeedInputAutoComplete from "../../SeedInputAutoComplete.tsx";
 
 
@@ -39,7 +39,7 @@ export default function NavBar() {
     const settingsOpen = useCardStore(state => state.applicationState.settingsOpen);
     const toggleSettings = useCardStore(state => state.toggleSettings);
 
-    const analyzeState = useCardStore(state => state.immolateState);
+    const analyzeState = useCardStore(state => state.engineState);
     const { seed, deck, stake, gameVersion: version, minAnte, maxAnte, cardsPerAnte } = analyzeState;
     const showCardSpoilers = useCardStore(state => state.applicationState.showCardSpoilers);
     const useCardPeek = useCardStore(state => state.applicationState.useCardPeek);
@@ -67,7 +67,7 @@ export default function NavBar() {
     const handleAnalyzeClick = () => {
         setStart(true);
     }
-    
+
     const handleViewModeChange = (value: string) => {
         // If clicking JAML (custom), close the menu
         if (value === 'custom') {
@@ -81,11 +81,11 @@ export default function NavBar() {
     }
 
     return (
-        <AppShell.Navbar 
-            p="xs" 
+        <AppShell.Navbar
+            p="xs"
             hidden={!settingsOpen}
-            style={{ 
-                minWidth: '250px', 
+            style={{
+                minWidth: '250px',
                 maxWidth: 'min(450px, 100%)',
                 overscrollBehavior: 'contain',
                 overflowX: 'hidden',
@@ -140,9 +140,9 @@ export default function NavBar() {
                             value: 'custom',
                             label: (
                                 <Group gap={4} wrap="nowrap" align="center">
-                                    <img 
-                                        src="/images/JAML.ico" 
-                                        alt="JAML" 
+                                    <img
+                                        src="/images/JAML.ico"
+                                        alt="JAML"
                                         style={{ width: '18px', height: '18px', objectFit: 'contain' }}
                                     />
                                     <Text size="sm" style={{ whiteSpace: 'nowrap' }}>JAML</Text>
@@ -154,12 +154,12 @@ export default function NavBar() {
                     size="sm"
                 />
             </AppShell.Section>
-            <AppShell.Section 
-                pr="xs" 
-                grow 
-                my={0} 
-                style={{ 
-                    overflowY: 'auto', 
+            <AppShell.Section
+                pr="xs"
+                grow
+                my={0}
+                style={{
+                    overflowY: 'auto',
                     overflowX: 'hidden',
                     overscrollBehavior: 'contain',
                     flex: '1 1 auto',
@@ -312,9 +312,9 @@ export default function NavBar() {
                 <Button.Group w={'100%'} mb="xs">
                     <Button variant="default" c={'blue'} size="sm" onClick={() => setMiscMaxSource(15)}>15</Button>
                     <Button variant="default" c={'red'} size="sm" onClick={() => setMiscMaxSource(Math.max(maxMiscCardSource - 5, 0))}>-5</Button>
-<Button.GroupSection flex={1} variant="default" bg={theme.colors.dark[0]} miw={60} style={{ fontSize: 'var(--mantine-font-size-sm)', padding: '2px 8px' }}>
-                    {maxMiscCardSource}
-                </Button.GroupSection>
+                    <Button.GroupSection flex={1} variant="default" bg={theme.colors.dark[0]} miw={60} style={{ fontSize: 'var(--mantine-font-size-sm)', padding: '2px 8px' }}>
+                        {maxMiscCardSource}
+                    </Button.GroupSection>
                     <Button variant="default" c={'green'} size="sm"
                         onClick={() => setMiscMaxSource(Math.min(maxMiscCardSource + 5, 100))}>+5</Button>
                     <Button variant="default" c={'blue'} size="sm" onClick={() => setMiscMaxSource(100)}>100</Button>

@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useMemo } from "react";
-import { analyzeSeed } from "../ImmolateWrapper";
+import { analyzeSeed } from "../GameEngine";
 import { useCardStore } from "./store.ts";
 import { useSeedOptionsContainer } from "./optionsProvider.tsx";
-import type { SeedResultsContainer } from "../ImmolateWrapper/CardEngines/Cards.ts";
+import type { SeedResultsContainer } from "../GameEngine/CardEngines/Cards.ts";
 
 
 export const SeedResultContext = createContext<SeedResultsContainer | null | undefined>(null);
@@ -27,7 +27,7 @@ function getCacheKey(state: any, options: any, seed: string) {
 
 export function SeedResultProvider({ children }: { children: React.ReactNode }) {
     const start = useCardStore(state => state.applicationState.start);
-    const analyzeState = useCardStore(state => state.immolateState);
+    const analyzeState = useCardStore(state => state.engineState);
     const options = useSeedOptionsContainer();
 
     const seedResult = useMemo(() => {
