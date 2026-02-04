@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from "react";
-import { Autocomplete, Button, Group, Modal, NativeSelect, Stack, Text, Textarea, useMantineTheme } from "@mantine/core";
+import { Autocomplete, Button, Group, Modal, Stack, Text, Textarea, useMantineTheme } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { IconUpload } from "@tabler/icons-react";
+import { IconUpload, IconChevronDown } from "@tabler/icons-react";
 import { SeedsWithLegendary, popularSeeds } from "../modules/const.ts";
 import { useCardStore } from "../modules/state/store.ts";
+import { DeckSprite, DECK_MAP, STAKE_MAP } from "./DeckSprite";
 
 
 export function QuickAnalyze() {
@@ -13,61 +14,103 @@ export function QuickAnalyze() {
     const setDeck = useCardStore(state => state.setDeck);
     const setStart = useCardStore(state => state.setStart);
     const isMobile = useMediaQuery('(max-width: 600px)');
-    const sectionWidth = 130;
-    const select = (
-        <NativeSelect
-            variant="unstyled"
-            styles={{
-                input: {
-                    fontWeight: 500,
-                    width: sectionWidth,
-                    height: '100%',
-                    paddingRight: 'var(--mantine-spacing-sm)',
-                },
-            }}
-            value={deck}
-            onChange={(e) => setDeck(e.currentTarget.value)}
-        >
-            <option value="Red Deck">Red Deck</option>
-            <option value="Blue Deck">Blue Deck</option>
-            <option value="Yellow Deck">Yellow Deck</option>
-            <option value="Green Deck">Green Deck</option>
-            <option value="Black Deck">Black Deck</option>
-            <option value="Magic Deck">Magic Deck</option>
-            <option value="Nebula Deck">Nebula Deck</option>
-            <option value="Ghost Deck">Ghost Deck</option>
-            <option value="Abandoned Deck">Abandoned Deck</option>
-            <option value="Checkered Deck">Checkered Deck</option>
-            <option value="Zodiac Deck">Zodiac Deck</option>
-            <option value="Painted Deck">Painted Deck</option>
-            <option value="Anaglyph Deck">Anaglyph Deck</option>
-            <option value="Plasma Deck">Plasma Deck</option>
-            <option value="Erratic Deck">Erratic Deck</option>
-        </NativeSelect>
-    );
+    const [showDeckSelector, setShowDeckSelector] = useState(false);
+    const [stake, setStake] = useState('White Stake');
+
+    // We need to sync the internal deck/stake state with the store if needed, 
+    // but looking at valid props, 'deck' is in the store. 'stake' might be new for this view?
+    // The previous code only set 'deck'. I will assume 'stake' is local for now or needs a store update if used elsewhere.
+    // However, the user explicitly asked for the chip.
+
+    // Helper to get clean names for the sprite
+    const getDeckSpriteName = (d: string) => d.replace(' Deck', '');
+    const getStakeSpriteName = (s: string) => s.replace(' Stake', '');
 
     const deckSelectStandalone = (
-        <NativeSelect
-            label="Deck"
-            value={deck}
-            onChange={(e) => setDeck(e.currentTarget.value)}
-        >
-            <option value="Red Deck">Red Deck</option>
-            <option value="Blue Deck">Blue Deck</option>
-            <option value="Yellow Deck">Yellow Deck</option>
-            <option value="Green Deck">Green Deck</option>
-            <option value="Black Deck">Black Deck</option>
-            <option value="Magic Deck">Magic Deck</option>
-            <option value="Nebula Deck">Nebula Deck</option>
-            <option value="Ghost Deck">Ghost Deck</option>
-            <option value="Abandoned Deck">Abandoned Deck</option>
-            <option value="Checkered Deck">Checkered Deck</option>
-            <option value="Zodiac Deck">Zodiac Deck</option>
-            <option value="Painted Deck">Painted Deck</option>
-            <option value="Anaglyph Deck">Anaglyph Deck</option>
-            <option value="Plasma Deck">Plasma Deck</option>
-            <option value="Erratic Deck">Erratic Deck</option>
-        </NativeSelect>
+        <Group gap={0} wrap="nowrap" align="flex-end">
+            {/* SPLIT BUTTON */}
+            <div className="relative flex items-end">
+                <Button
+                    variant="filled"
+                    color="dark"
+                    className="rounded-r-none border-r border-white/10 px-2 h-[42px] hover:bg-white/10"
+                    onClick={() => setShowDeckSelector(!showDeckSelector)}
+                >
+                    <Group gap="xs">
+                        <div className="relative w-[30px] h-[40px] pointer-events-none transform scale-90 origin-center">
+                            <DeckSprite deck={getDeckSpriteName(deck)} stake={getStakeSpriteName(stake)} size={30} />
+                        </div>
+                        <Stack gap={0} align="flex-start" className="hidden sm:flex">
+                            <Text size="xs" fw={700} tt="uppercase" c="blue.3" lh={1}>{getDeckSpriteName(deck)}</Text>
+                            <Text size="xs" fz="0.6rem" tt="uppercase" c="dimmed" lh={1}>{getStakeSpriteName(stake)}</Text>
+                        </Stack>
+                    </Group>
+                </Button>
+                <Button
+                    variant="filled"
+                    color="dark"
+                    className="rounded-l-none px-1 h-[42px] hover:bg-white/10"
+                    onClick={() => setShowDeckSelector(!showDeckSelector)}
+                >
+                    <IconChevronDown size={14} />
+                </Button>
+
+                {/* DROPDOWN - Custom implementation to match the V2 vibe */}
+                {showDeckSelector && (
+                    <div className="absolute top-full left-0 mt-2 z-[100] bg-[#1A1B1E] border border-white/10 rounded-lg shadow-xl p-4 w-[320px]">
+                        {/* Decks Grid */}
+                        <Stack gap="xs" mb="md">
+                            <Text size="xs" fw={700} c="blue.4" tt="uppercase">Deck Architecture</Text>
+                            <div className="grid grid-cols-5 gap-2">
+                                {Object.keys(DECK_MAP).map(d => {
+                                    const fullDeckName = d.charAt(0).toUpperCase() + d.slice(1) + " Deck";
+                                    return (
+                                        <button
+                                            key={d}
+                                            onClick={() => { setDeck(fullDeckName); setShowDeckSelector(false); }}
+                                            className={`
+                                                relative aspect-[2/3] rounded overflow-hidden border transition-all
+                                                ${deck === fullDeckName ? 'border-yellow-400 ring-1 ring-yellow-400 opacity-100 placeholder:opacity-100' : 'border-white/10 opacity-60 hover:opacity-100'}
+                                            `}
+                                            title={fullDeckName}
+                                        >
+                                            <div className="absolute inset-0 flex items-center justify-center transform scale-[0.85]">
+                                                <DeckSprite deck={d} size={40} />
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </Stack>
+
+                        {/* Stakes Grid */}
+                        <Stack gap="xs">
+                            <Text size="xs" fw={700} c="red.4" tt="uppercase">Stake Difficulty</Text>
+                            <div className="grid grid-cols-4 gap-2">
+                                {Object.keys(STAKE_MAP).map(s => {
+                                    const fullStakeName = s.charAt(0).toUpperCase() + s.slice(1) + " Stake";
+                                    return (
+                                        <button
+                                            key={s}
+                                            onClick={() => { setStake(fullStakeName); setShowDeckSelector(false); }}
+                                            className={`
+                                                relative h-10 rounded border transition-all flex items-center justify-center bg-black/20
+                                                ${stake === fullStakeName ? 'border-yellow-400 bg-yellow-400/10' : 'border-white/10 hover:border-white/30'}
+                                            `}
+                                            title={fullStakeName}
+                                        >
+                                            <div className="transform scale-75 pointer-events-none">
+                                                <DeckSprite deck={getDeckSpriteName(deck)} stake={s} size={30} className="!w-[30px] !h-[40px] overflow-hidden" />
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </Stack>
+                    </div>
+                )}
+            </div>
+        </Group >
     );
 
     return (
@@ -97,36 +140,38 @@ export function QuickAnalyze() {
                     {deckSelectStandalone}
                 </>
             ) : (
-                <Autocomplete
-                    label="Analyze Seed"
-                    placeholder="Enter Seed"
-                    data={[
-                        {
-                            group: 'Popular Seeds',
-                            items: popularSeeds
-                        }, {
-                            group: 'Generated Seeds With Legendary Jokers',
-                            items: SeedsWithLegendary
+                <div className="flex gap-2 items-end w-full">
+                    <Autocomplete
+                        className="flex-1"
+                        label="Analyze Seed"
+                        placeholder="Enter Seed"
+                        data={[
+                            {
+                                group: 'Popular Seeds',
+                                items: popularSeeds
+                            }, {
+                                group: 'Generated Seeds With Legendary Jokers',
+                                items: SeedsWithLegendary
 
-                        }
-                    ]}
-                    value={seed}
-                    onChange={(e) => setSeed(e)}
-                    onOptionSubmit={(val) => {
-                        setSeed(val);
-                        setStart(true);
-                    }}
-                    rightSection={select}
-                    rightSectionWidth={sectionWidth}
-                    styles={{
-                        input: {
-                            minWidth: 0,
-                        },
-                        section: {
-                            borderLeft: '1px solid var(--mantine-color-default-border)',
-                        }
-                    }}
-                />
+                            }
+                        ]}
+                        value={seed}
+                        onChange={(e) => setSeed(e)}
+                        onOptionSubmit={(val) => {
+                            setSeed(val);
+                            setStart(true);
+                        }}
+                        styles={{
+                            input: {
+                                minWidth: 0,
+                            },
+                            section: {
+                                borderLeft: '1px solid var(--mantine-color-default-border)',
+                            }
+                        }}
+                    />
+                    {deckSelectStandalone}
+                </div>
             )}
             <Button
                 fullWidth

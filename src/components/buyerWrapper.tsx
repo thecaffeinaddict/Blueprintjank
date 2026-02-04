@@ -19,7 +19,7 @@ import { IconArrowCapsule, IconCalculator, IconChevronDown, IconExternalLink, Ic
 import React, { useState, useEffect } from "react";
 import { LOCATION_TYPES } from "../modules/const.ts";
 import { useCardStore } from "../modules/state/store.ts";
-import type { BuyWrapperProps} from "../modules/const.ts";
+import type { BuyWrapperProps } from "../modules/const.ts";
 
 export function BuyWrapper({ children, bottomOffset, metaData, horizontal = false }: BuyWrapperProps) {
     const selectedSearchResult = useCardStore(state => state.searchState.selectedSearchResult);
@@ -34,7 +34,7 @@ export function BuyWrapper({ children, bottomOffset, metaData, horizontal = fals
     const isLocked = cardId in lockedCards;
     const [isScrolling, setIsScrolling] = useState(false);
     const [scrollTimeout, setScrollTimeout] = useState<NodeJS.Timeout | null>(null);
-    
+
     useEffect(() => {
         return () => {
             if (scrollTimeout) {
@@ -42,7 +42,7 @@ export function BuyWrapper({ children, bottomOffset, metaData, horizontal = fals
             }
         };
     }, [scrollTimeout]);
-    
+
     const handlers = useLongPress(() => {
         if (!useCardPeek || isScrolling) return;
         if (isLocked) {
@@ -53,11 +53,11 @@ export function BuyWrapper({ children, bottomOffset, metaData, horizontal = fals
     }, {
         threshold: 500,
     });
-    
+
     const handleTouchStart = (e: React.TouchEvent) => {
         setIsScrolling(false);
     };
-    
+
     const handleTouchMove = (e: React.TouchEvent) => {
         setIsScrolling(true);
         if (scrollTimeout) {
@@ -68,11 +68,11 @@ export function BuyWrapper({ children, bottomOffset, metaData, horizontal = fals
         }, 150);
         setScrollTimeout(timeout);
     };
-    
+
     const handleMouseDown = (e: React.MouseEvent) => {
         setIsScrolling(false);
     };
-    
+
     const handleMouseMove = (e: React.MouseEvent) => {
         if (e.buttons > 0) {
             setIsScrolling(true);
@@ -145,7 +145,7 @@ export function BuyWrapper({ children, bottomOffset, metaData, horizontal = fals
                     }
                     position="top"
                     withinPortal
-                    transitionProps={{ transition: 'slide-up', duration: 300, enterDelay: 350, exitDelay: 150 }}
+                    transitionProps={{ transition: 'slide-up', duration: 150, enterDelay: 50, exitDelay: 50 }}
                 >
                     <Card
                         {...handlers}
@@ -156,7 +156,7 @@ export function BuyWrapper({ children, bottomOffset, metaData, horizontal = fals
                         style={{
                             boxShadow: isSelected ? '0 0 12px 12px rgba(255,255,255,0.3)' : 'none',
                             transform: hasUserAttention ? 'scale(1.15)' : 'none',
-                            transition: 'transform 0.4s ease',
+                            transition: 'transform 0.1s ease-out',
                             zIndex: hasUserAttention ? 20 : 0
                         }}
                     >
@@ -187,10 +187,10 @@ export function BuyWrapper({ children, bottomOffset, metaData, horizontal = fals
             <Transition
                 mounted={hasUserAttention}
                 transition={horizontal ? "slide-right" : "slide-down"}
-                duration={200}
-                enterDelay={350}
-                exitDelay={150}
-                timingFunction="ease"
+                duration={100}
+                enterDelay={50}
+                exitDelay={50}
+                timingFunction="ease-out"
             >
                 {
                     (styles) => (

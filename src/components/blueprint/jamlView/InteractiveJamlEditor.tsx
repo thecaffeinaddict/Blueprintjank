@@ -10,47 +10,15 @@ import {
   getClauseTypeKeys,
   ARRAY_KEYS,
 } from '../../../utils/jamlValues';
+import styles from './InteractiveJamlEditor.module.css';
 
-// Balatro Colors (Exact Palette from User)
-const COLORS = {
-  white: '#FFFFFF',
-  black: '#000000',
-  red: '#ff4c40',
-  darkRed: '#a02721',
-  darkestRed: '#70150f',
-  blue: '#0093ff',
-  darkBlue: '#0057a1',
-  orange: '#ff9800',
-  darkOrange: '#a05b00',
-  darkGold: '#b8883a',
-  green: '#429f79',
-  darkGreen: '#215f46',
-  purple: '#7d60e0',
-  darkPurple: '#292189',
-
-  // Editor background - matching Balatro dark theme
-  editorBg: '#1e2b2d',
-  editorBgAlt: '#33464b',
-};
+// Mantine theme variables are used instead of local COLORS constant
+// var(--mantine-color-polaroidBg-0) etc.
 
 // Consistent monospace font stack - legible but not too nerdy
 const MONO_FONT = '"JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace';
 
 // Consistent block styling - uniform size, very slight rounding
-const BLOCK_STYLE = {
-  height: '28px',
-  minWidth: '28px',
-  padding: '0 8px',
-  borderRadius: '3px',
-  fontSize: '13px',
-  fontWeight: 600,
-  fontFamily: MONO_FONT,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  transition: 'background-color 0.1s, border-color 0.1s',
-} as const;
 
 interface InteractiveJamlEditorProps {
   initialJaml?: string;
@@ -70,24 +38,38 @@ interface ParsedLine {
   validationState: 'required-incomplete' | 'optional-incomplete' | 'complete' | 'invalid' | 'metadata';
   isInvalidValue?: boolean;
   isArrayValue?: boolean; // For antes: [1,2,3] style
-  arrayValues?: string[]; // Individual array items
+  arrayValues?: Array<string>; // Individual array items
 }
 
-const DEFAULT_JAML = `# My JAML Filter
-name: My Filter
-deck: Red
+const DEFAULT_JAML = `# Classic PErkeo Observatory
+name: PerkeoObservatory
+deck: Ghost
 stake: White
 
 must:
-  - joker: Blueprint
-    edition: Negative
+  - voucher: Telescope
+    antes: [1,2]
+  - voucher: Observatory
+    antes: [2,3]
+  - soulJoker: Perkeo
     antes: [1, 2, 3]
 
 should:
-  - soulJoker: Any
+  - soulJoker: Perkeo
     edition: Negative
-    antes: [7, 8]
+    antes: [1,2,3]
     score: 5
+
+  # 3 points for every Polychrome Egg 🌈🥚
+  - joker: Egg
+    edition: Polychrome
+    antes: [1,2,3,4,5,6,7,8]
+    sources:
+      judgement: [0,1,2]
+    score: 3
+
+    # 1 point every Egg across normal run antes/shops
+  - joker: Egg
 `;
 
 // Metadata keys that get purple highlight
@@ -100,14 +82,10 @@ const REQUIRED_KEYS = ['joker', 'soulJoker', 'voucher', 'tarotCard', 'planetCard
 function AntesToggle({
   values,
   onToggle,
-  onStartEdit,
-  color,
   darkColor
 }: {
-  values: string[];
+  values: Array<string>;
   onToggle: (val: string) => void;
-  onStartEdit: () => void;
-  color: string;
   darkColor: string;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -133,11 +111,11 @@ function AntesToggle({
     return (
       <Box
         onClick={() => setExpanded(true)}
+        className={styles.block}
         style={{
-          ...BLOCK_STYLE,
-          backgroundColor: selectedAntes.size > 0 ? `${darkColor}15` : `${COLORS.red}10`,
-          border: `1px solid ${selectedAntes.size > 0 ? darkColor : COLORS.red}40`,
-          color: selectedAntes.size > 0 ? darkColor : COLORS.darkRed,
+          backgroundColor: selectedAntes.size > 0 ? `${darkColor}15` : 'color-mix(in srgb, var(--mantine-color-jamlRed-6) 10%, transparent)',
+          border: `1px solid ${selectedAntes.size > 0 ? darkColor : 'var(--mantine-color-jamlRed-6)'}40`,
+          color: selectedAntes.size > 0 ? darkColor : 'var(--mantine-color-jamlRed-8)',
           minWidth: '100px',
         }}
       >
@@ -156,14 +134,11 @@ function AntesToggle({
             onClick={(e) => {
               e.stopPropagation();
               // Toggle this ante
-              const newValues = isSelected
-                ? values.filter(v => parseInt(v, 10) !== ante)
-                : [...values, ante.toString()];
               // Rebuild array - we need to update parent
               onToggle(ante.toString());
             }}
+            className={styles.block}
             style={{
-              ...BLOCK_STYLE,
               minWidth: '28px',
               backgroundColor: isSelected ? `${darkColor}30` : 'transparent',
               borderTop: `1px solid ${isSelected ? darkColor : '#ccc'}`,
@@ -181,14 +156,14 @@ function AntesToggle({
       })}
       <Box
         onClick={() => setExpanded(false)}
+        className={styles.block}
         style={{
-          ...BLOCK_STYLE,
           minWidth: '24px',
           marginLeft: '4px',
-          backgroundColor: `${COLORS.green}20`,
-          border: `1px solid ${COLORS.green}`,
+          backgroundColor: 'color-mix(in srgb, var(--mantine-color-jamlGreen-6) 20%, transparent)',
+          border: '1px solid var(--mantine-color-jamlGreen-6)',
           borderRadius: '3px',
-          color: COLORS.darkGreen,
+          color: 'var(--mantine-color-jamlGreen-8)',
         }}
       >
         ✓
@@ -200,7 +175,7 @@ function AntesToggle({
 // Smart popover position logic removed in favor of Mantine's built-in collision detection
 
 export function InteractiveJamlEditor({ initialJaml, onJamlChange }: InteractiveJamlEditorProps) {
-  const [lines, setLines] = useState<ParsedLine[]>([]);
+  const [lines, setLines] = useState<Array<ParsedLine>>([]);
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
   const [editingPart, setEditingPart] = useState<'key' | 'value' | 'arrayItem' | null>(null);
   const [editingArrayIndex, setEditingArrayIndex] = useState<number | null>(null);
@@ -209,11 +184,9 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
   const editorRef = useRef<HTMLDivElement>(null);
 
   // Parse JAML text into lines
-  const parseJamlToLines = useCallback((text: string): ParsedLine[] => {
+  const parseJamlToLines = useCallback((text: string): Array<ParsedLine> => {
     const rawLines = text.split('\n');
     let currentClauseType: string | undefined;
-    let inMust = false;
-    let inShould = false;
 
     return rawLines.map((raw, index) => {
       const indent = raw.search(/\S|$/);
@@ -225,7 +198,7 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
       let key: string | undefined;
       let value: string | undefined;
       let isArrayValue = false;
-      let arrayValues: string[] | undefined;
+      let arrayValues: Array<string> | undefined;
 
       if (!isComment && trimmed.includes(':')) {
         const colonIndex = trimmed.indexOf(':');
@@ -313,11 +286,11 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
   // Initialize lines
   useEffect(() => {
     const text = initialJaml || DEFAULT_JAML;
-    setLines(parseJamlToLines(text));
+    setTimeout(() => setLines(parseJamlToLines(text)), 0);
   }, [initialJaml, parseJamlToLines]);
 
   // Convert lines back to JAML
-  const linesToJaml = useCallback((linesList: ParsedLine[]): string => {
+  const linesToJaml = useCallback((linesList: Array<ParsedLine>): string => {
     return linesList.map(l => l.raw).join('\n');
   }, []);
 
@@ -340,7 +313,7 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
 
         // Re-parse array values
         let isArrayValue = false;
-        let arrayValues: string[] | undefined;
+        let arrayValues: Array<string> | undefined;
         if (newValue && newValue.startsWith('[') && newValue.endsWith(']')) {
           isArrayValue = true;
           const inner = newValue.slice(1, -1);
@@ -362,7 +335,7 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
         try {
           const parsed = yaml.load(jamlText);
           onJamlChange(jamlText, parsed, true);
-        } catch (e) {
+        } catch {
           onJamlChange(jamlText, null, false);
         }
       }
@@ -398,7 +371,7 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
         try {
           const parsed = yaml.load(jamlText);
           onJamlChange(jamlText, parsed, true);
-        } catch (e) {
+        } catch {
           onJamlChange(jamlText, null, false);
         }
       }
@@ -434,7 +407,7 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
         try {
           const parsed = yaml.load(jamlText);
           onJamlChange(jamlText, parsed, true);
-        } catch (e) {
+        } catch {
           onJamlChange(jamlText, null, false);
         }
       }
@@ -470,7 +443,7 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
         try {
           const parsed = yaml.load(jamlText);
           onJamlChange(jamlText, parsed, true);
-        } catch (e) {
+        } catch {
           onJamlChange(jamlText, null, false);
         }
       }
@@ -490,7 +463,7 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
         try {
           const parsed = yaml.load(jamlText);
           onJamlChange(jamlText, parsed, true);
-        } catch (e) {
+        } catch {
           onJamlChange(jamlText, null, false);
         }
       }
@@ -499,42 +472,6 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
     });
   }, [linesToJaml, onJamlChange]);
 
-  // Add new line after current
-  const addLineAfter = useCallback((afterLineId: string, content: string) => {
-    setLines(prev => {
-      const index = prev.findIndex(l => l.id === afterLineId);
-      if (index === -1) return prev;
-
-      const currentLine = prev[index];
-      const newLineRaw = ' '.repeat(currentLine.indent) + content;
-
-      // Parse the new line
-      const newParsed = parseJamlToLines(newLineRaw)[0];
-      const newLine: ParsedLine = {
-        ...newParsed,
-        id: `line-new-${Date.now()}`,
-        clauseType: currentLine.clauseType,
-      };
-
-      const newLines = [...prev];
-      newLines.splice(index + 1, 0, newLine);
-
-      // Renumber
-      const renumbered = newLines.map((l, i) => ({ ...l, lineNumber: i, id: `line-${i}` }));
-
-      const jamlText = linesToJaml(renumbered);
-      if (onJamlChange) {
-        try {
-          const parsed = yaml.load(jamlText);
-          onJamlChange(jamlText, parsed, true);
-        } catch (e) {
-          onJamlChange(jamlText, null, false);
-        }
-      }
-
-      return renumbered;
-    });
-  }, [parseJamlToLines, linesToJaml, onJamlChange]);
 
   // Find next editable line/field
   const findNextEditable = useCallback((currentLineIndex: number): { lineId: string; part: 'key' | 'value' | 'arrayItem'; arrayIndex?: number } | null => {
@@ -633,7 +570,7 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
       style={{
         flex: 1,
         minWidth: 0,
-        backgroundColor: COLORS.editorBg,
+        backgroundColor: 'var(--mantine-color-polaroidBg-0)',
         fontFamily: MONO_FONT,
         fontSize: '13px',
         fontWeight: 500,
@@ -662,29 +599,28 @@ export function InteractiveJamlEditor({ initialJaml, onJamlChange }: Interactive
               setEditingArrayIndex(null);
             }}
             onChange={(part, newValue) => updateLineValue(line.id, part, newValue)}
-            onArrayItemChange={(index, newValue) => updateArrayItem(line.id, index, newValue)}
+            onArrayItemChange={(idx, newValue) => updateArrayItem(line.id, idx, newValue)}
             onArrayItemAdd={(newValue) => addArrayItem(line.id, newValue)}
-            onArrayItemRemove={(index) => removeArrayItem(line.id, index)}
+            onArrayItemRemove={(idx) => removeArrayItem(line.id, idx)}
             onEnter={() => handleEnterAdvance(line.id)}
             onDelete={() => deleteLine(line.id)}
-            onAddLine={(content) => addLineAfter(line.id, content)}
           />
         ))}
       </Stack>
 
-      <Box mt="md" p="sm" style={{ backgroundColor: COLORS.editorBgAlt, borderRadius: '4px', border: `1px solid ${COLORS.darkGold}40` }}>
+      <Box mt="md" p="sm" className={styles.legendBox}>
         <Group gap="md" wrap="wrap" mb={4}>
-          <span style={{ fontFamily: MONO_FONT, fontSize: '12px', color: '#666' }}>
-            <span style={{ color: COLORS.red }}>●</span> required
+          <span className={styles.legendItem}>
+            <span className={styles.legendDot} style={{ color: 'var(--mantine-color-jamlRed-6)' }}>●</span> required
           </span>
-          <span style={{ fontFamily: MONO_FONT, fontSize: '12px', color: '#666' }}>
-            <span style={{ color: COLORS.blue }}>●</span> optional
+          <span className={styles.legendItem}>
+            <span className={styles.legendDot} style={{ color: 'var(--mantine-color-jamlBlue-6)' }}>●</span> optional
           </span>
-          <span style={{ fontFamily: MONO_FONT, fontSize: '12px', color: '#666' }}>
-            <span style={{ color: COLORS.green }}>●</span> complete
+          <span className={styles.legendItem}>
+            <span className={styles.legendDot} style={{ color: 'var(--mantine-color-jamlGreen-6)' }}>●</span> complete
           </span>
-          <span style={{ fontFamily: MONO_FONT, fontSize: '12px', color: '#666' }}>
-            <span style={{ color: COLORS.purple }}>●</span> metadata
+          <span className={styles.legendItem}>
+            <span className={styles.legendDot} style={{ color: 'var(--mantine-color-jamlPurple-6)' }}>●</span> metadata
           </span>
         </Group>
         <Text size="xs" style={{ fontFamily: MONO_FONT, color: '#888' }}>
@@ -710,7 +646,6 @@ interface JamlLineProps {
   onArrayItemRemove: (index: number) => void;
   onEnter: () => void;
   onDelete: () => void;
-  onAddLine: (content: string) => void;
 }
 
 function JamlLine({
@@ -727,16 +662,15 @@ function JamlLine({
   onArrayItemRemove,
   onEnter,
   onDelete,
-  onAddLine,
 }: JamlLineProps) {
   const { hovered: lineHovered, ref: lineRef } = useHover();
   const { hovered: deleteHovered, ref: deleteRef } = useHover();
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<Array<string>>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [localValue, setLocalValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
-  const keyTargetRef = useRef<HTMLSpanElement>(null);
+  const keyTargetRef = useRef<HTMLDivElement>(null);
   const valueTargetRef = useRef<HTMLDivElement>(null);
   const isClickingSuggestion = useRef(false);
 
@@ -750,7 +684,7 @@ function JamlLine({
   // Expand array when we start editing it
   useEffect(() => {
     if (isEditing && editingPart === 'arrayItem' && line.isArrayValue) {
-      setIsArrayExpanded(true);
+      setTimeout(() => setIsArrayExpanded(true), 0);
     }
   }, [isEditing, editingPart, line.isArrayValue]);
 
@@ -762,40 +696,40 @@ function JamlLine({
     }
   }, [isEditing, isArrayExpanded]);
 
-  // Get validation color (for dark background, use bright variants)
+  // Get validation color (for light background, use dark/readable variants)
   const getColor = () => {
     switch (line.validationState) {
-      case 'required-incomplete': return COLORS.red;
-      case 'optional-incomplete': return COLORS.blue;
-      case 'complete': return COLORS.green;
-      case 'invalid': return COLORS.red;
-      case 'metadata': return COLORS.purple;
-      default: return '#ccc';
+      case 'required-incomplete': return 'var(--mantine-color-jamlRed-6)';
+      case 'optional-incomplete': return 'var(--mantine-color-jamlBlue-6)';
+      case 'complete': return 'var(--mantine-color-jamlGreen-6)';
+      case 'invalid': return 'var(--mantine-color-jamlRed-6)';
+      case 'metadata': return 'var(--mantine-color-jamlPurple-6)';
+      default: return '#666666'; // Dark gray for default text
     }
   };
 
-  // Brighter color for hover/active states (same for now on dark theme)
+  // Brighter / High Contrast color for hover/active states
   const getBrightColor = () => {
     switch (line.validationState) {
-      case 'required-incomplete': return COLORS.red;
-      case 'optional-incomplete': return COLORS.blue;
-      case 'complete': return COLORS.green;
-      case 'invalid': return COLORS.red;
-      case 'metadata': return COLORS.purple;
-      default: return '#fff';
+      case 'required-incomplete': return 'var(--mantine-color-jamlRed-6)';
+      case 'optional-incomplete': return 'var(--mantine-color-jamlBlue-6)';
+      case 'complete': return 'var(--mantine-color-jamlGreen-6)';
+      case 'invalid': return 'var(--mantine-color-jamlRed-6)';
+      case 'metadata': return 'var(--mantine-color-jamlPurple-6)';
+      default: return 'var(--mantine-color-polaroidText-0)'; // Dark text (#1a1a1a) for focused/hover
     }
   };
 
   // Get suggestions based on context
   const getSuggestions = useCallback((part: 'key' | 'value' | 'arrayItem', filterText: string) => {
-    let options: string[] = [];
+    let options: Array<string> = [];
 
     if (part === 'key') {
       if (line.isArrayItem && !line.key) {
         options = getClauseTypeKeys();
       } else if (line.clauseType) {
-        const props = getSuggestedPropertiesFor(line.clauseType);
-        options = props.map(p => p.key);
+        const properties = getSuggestedPropertiesFor(line.clauseType);
+        options = properties.map(p => p.key);
       } else if (line.indent === 0) {
         options = getTopLevelKeys();
       } else {
@@ -853,11 +787,11 @@ function JamlLine({
   useEffect(() => {
     if (isEditing && editingPart) {
       const newSuggestions = getSuggestions(editingPart, localValue);
-      setSuggestions(newSuggestions);
-      setShowSuggestions(newSuggestions.length > 0);
-      setSelectedIndex(0);
+      setTimeout(() => setSuggestions(newSuggestions), 0);
+      setTimeout(() => setShowSuggestions(newSuggestions.length > 0), 0);
+      setTimeout(() => setSelectedIndex(0), 0);
     } else {
-      setShowSuggestions(false);
+      setTimeout(() => setShowSuggestions(false), 0);
     }
   }, [isEditing, editingPart, localValue, getSuggestions]);
 
@@ -867,13 +801,13 @@ function JamlLine({
       inputRef.current.focus();
       inputRef.current.select();
       if (editingPart === 'key') {
-        setLocalValue(line.key || '');
+        setTimeout(() => setLocalValue(line.key || ''), 0);
       } else if (editingPart === 'value') {
         // Strip leading/trailing ~ from value to allow clean editing
         const raw = line.value || '';
-        setLocalValue(raw.replace(/^~|~$/g, ''));
+        setTimeout(() => setLocalValue(raw.replace(/^~|~$/g, '')), 0);
       } else if (editingPart === 'arrayItem' && editingArrayIndex !== null) {
-        setLocalValue(line.arrayValues?.[editingArrayIndex] || '');
+        setTimeout(() => setLocalValue(line.arrayValues?.[editingArrayIndex] || ''), 0);
       }
     }
   }, [isEditing, editingPart, editingArrayIndex, line.key, line.value, line.arrayValues]);
@@ -960,7 +894,7 @@ function JamlLine({
     return (
       <Box style={{
         padding: '2px 8px 2px 32px',
-        color: '#7a8599',
+        color: '#6e7a89', // Mid-gray for comments (readable on off-white)
         fontStyle: 'italic',
         fontSize: '12px',
         fontWeight: 500,
@@ -977,7 +911,7 @@ function JamlLine({
 
   // Section headers
   if ((line.key === 'must' || line.key === 'should' || line.key === 'mustNot') && !line.value) {
-    const sectionColor = line.key === 'must' ? COLORS.darkRed : COLORS.darkBlue;
+    const sectionColor = line.key === 'must' ? 'var(--mantine-color-jamlRed-8)' : 'var(--mantine-color-jamlBlue-8)';
     return (
       <Box style={{
         padding: '4px 8px 4px 32px',
@@ -1022,26 +956,17 @@ function JamlLine({
       {/* Delete zone indicator */}
       <Box
         ref={deleteRef}
+        className={styles.deleteZone}
         style={{
-          width: '24px',
-          minWidth: '24px',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: (lineHovered || deleteHovered) && line.isArrayItem ? COLORS.orange : 'transparent',
-          backgroundColor: deleteHovered ? `${COLORS.darkOrange}22` : 'transparent',
-          transition: 'all 0.15s',
-          borderRadius: '2px',
-          fontWeight: 700,
-          fontSize: '16px',
+          color: (lineHovered || deleteHovered) && line.isArrayItem ? 'var(--mantine-color-jamlOrange-6)' : 'transparent',
+          backgroundColor: deleteHovered ? 'color-mix(in srgb, var(--mantine-color-jamlOrange-8) 22%, transparent)' : 'transparent',
         }}
       >
         {(lineHovered || deleteHovered) && line.isArrayItem && '−'}
       </Box>
 
       {/* Indent + prefix */}
-      <Text span style={{ whiteSpace: 'pre', color: '#999' }}>
+      <Text span style={{ whiteSpace: 'pre', color: '#bbb' }}>
         {indentSpaces}{prefix}
       </Text>
 
@@ -1058,8 +983,8 @@ function JamlLine({
             <Box
               ref={keyTargetRef}
               onClick={(e) => { e.stopPropagation(); onStartEdit('key'); }}
+              className={styles.block}
               style={{
-                ...BLOCK_STYLE,
                 minWidth: `${keyWidth}ch`,
                 justifyContent: 'flex-start',
                 color: (isEditing && editingPart === 'key') ? getBrightColor() : getColor(),
@@ -1095,6 +1020,7 @@ function JamlLine({
                     fontWeight: 600,
                     width: `${Math.max(localValue.length, 4)}ch`,
                     padding: 0,
+                    margin: 0,
                   }}
                 />
               ) : line.key}
@@ -1112,7 +1038,7 @@ function JamlLine({
       )}
 
       {/* Colon */}
-      {line.key && <Text span style={{ color: '#888' }}>: </Text>}
+      {line.key && <Text span style={{ color: '#999' }}>: </Text>}
 
       {/* Value - Array or Single */}
       {line.key && (
@@ -1125,7 +1051,6 @@ function JamlLine({
                 <LongFormArrayItem
                   key={idx}
                   value={item}
-                  index={idx}
                   isEditing={isEditing && editingPart === 'arrayItem' && editingArrayIndex === idx}
                   lineHovered={lineHovered}
                   color={getBrightColor()}
@@ -1144,23 +1069,16 @@ function JamlLine({
               ))}
               {/* Add new item row */}
               <Group gap={4} style={{ paddingLeft: `${line.indent + 2}ch` }}>
-                <Text span style={{ color: COLORS.green, fontWeight: 600 }}>-</Text>
+                <Text span style={{ color: 'var(--mantine-color-jamlGreen-6)', fontWeight: 600 }}>-</Text>
                 <Box
-                  onClick={(e) => { e.stopPropagation(); onStartEdit('arrayItem', line.arrayValues!.length); }}
+                  onClick={(e) => { e.stopPropagation(); onStartEdit('arrayItem', (line.arrayValues || []).length); }}
+                  className={styles.addArrayItemBox}
                   style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    minWidth: '60px',
-                    height: '22px',
-                    backgroundColor: lineHovered ? `${COLORS.green}15` : `${COLORS.green}08`,
-                    border: `1px dashed ${COLORS.green}`,
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    padding: '0 8px',
-                    transition: 'all 0.15s',
+                    backgroundColor: lineHovered ? 'color-mix(in srgb, var(--mantine-color-jamlGreen-6) 15%, transparent)' : 'color-mix(in srgb, var(--mantine-color-jamlGreen-6) 8%, transparent)',
+                    border: '1px dashed var(--mantine-color-jamlGreen-6)',
                   }}
                 >
-                  {isEditing && editingPart === 'arrayItem' && editingArrayIndex === line.arrayValues!.length ? (
+                  {isEditing && editingPart === 'arrayItem' && editingArrayIndex === (line.arrayValues || []).length ? (
                     <input
                       ref={inputRef}
                       value={localValue}
@@ -1168,22 +1086,17 @@ function JamlLine({
                       onKeyDown={handleKeyDown}
                       onBlur={handleBlur}
                       onClick={(e) => e.stopPropagation()}
+                      className={styles.input}
                       style={{
-                        background: 'transparent',
-                        border: 'none',
-                        outline: 'none',
-                        color: COLORS.darkGreen,
-                        fontFamily: 'inherit',
+                        color: 'var(--mantine-color-jamlGreen-8)',
                         fontSize: '12px',
-                        fontWeight: 600,
                         width: `${Math.max(localValue.length, 4)}ch`,
-                        padding: 0,
                       }}
                     />
                   ) : (
                     <Group gap={4}>
-                      <IconPlus size={12} color={COLORS.green} />
-                      <Text size="xs" fw={500} c={COLORS.green}>add</Text>
+                      <IconPlus size={12} color={'var(--mantine-color-jamlGreen-6)'} />
+                      <Text size="xs" fw={500} c={'var(--mantine-color-jamlGreen-6)'}>add</Text>
                     </Group>
                   )}
                 </Box>
@@ -1207,8 +1120,6 @@ function JamlLine({
                       onArrayItemAdd(val);
                     }
                   }}
-                  onStartEdit={() => { setIsArrayExpanded(true); onStartEdit('arrayItem', 0); }}
-                  color={getBrightColor()}
                   darkColor={getColor()}
                 />
               ) : (
@@ -1218,8 +1129,8 @@ function JamlLine({
                     <Box
                       key={idx}
                       onClick={() => { setIsArrayExpanded(true); onStartEdit('arrayItem', idx); }}
+                      className={styles.block}
                       style={{
-                        ...BLOCK_STYLE,
                         minWidth: '24px',
                         backgroundColor: `${getColor()}15`,
                         borderTop: `1px solid ${getColor()}40`,
@@ -1234,14 +1145,14 @@ function JamlLine({
                     </Box>
                   ))}
                   <Box
-                    onClick={(e) => { e.stopPropagation(); setIsArrayExpanded(true); onStartEdit('arrayItem', line.arrayValues!.length); }}
+                    onClick={(e) => { e.stopPropagation(); setIsArrayExpanded(true); onStartEdit('arrayItem', (line.arrayValues || []).length); }}
+                    className={styles.block}
                     style={{
-                      ...BLOCK_STYLE,
                       minWidth: '24px',
-                      backgroundColor: `${COLORS.green}15`,
-                      border: `1px solid ${COLORS.green}40`,
+                      backgroundColor: 'color-mix(in srgb, var(--mantine-color-jamlGreen-6) 15%, transparent)',
+                      border: '1px solid color-mix(in srgb, var(--mantine-color-jamlGreen-6) 40%, transparent)',
                       borderRadius: '0 3px 3px 0',
-                      color: COLORS.green,
+                      color: 'var(--mantine-color-jamlGreen-6)',
                       opacity: lineHovered ? 1 : 0.5,
                     }}
                   >
@@ -1266,30 +1177,30 @@ function JamlLine({
                 onClick={(e) => { e.stopPropagation(); onStartEdit('value'); }}
                 onMouseEnter={(e) => {
                   if (!line.isInvalidValue) {
-                    e.currentTarget.style.backgroundColor = line.value ? `${getColor()}25` : `${COLORS.red}20`;
-                    e.currentTarget.style.borderColor = line.value ? getColor() : COLORS.red;
+                    e.currentTarget.style.backgroundColor = line.value ? `${getColor()}25` : 'color-mix(in srgb, var(--mantine-color-jamlRed-6) 20%, transparent)';
+                    e.currentTarget.style.borderColor = line.value ? getColor() : 'var(--mantine-color-jamlRed-6)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!(isEditing && editingPart === 'value')) {
                     e.currentTarget.style.backgroundColor = line.isInvalidValue
-                      ? `${COLORS.red}15`
-                      : (line.value ? `${getColor()}10` : `${COLORS.red}08`);
+                      ? 'color-mix(in srgb, var(--mantine-color-jamlRed-6) 15%, transparent)'
+                      : (line.value ? `${getColor()}10` : 'color-mix(in srgb, var(--mantine-color-jamlRed-6) 8%, transparent)');
                     e.currentTarget.style.borderColor = line.isInvalidValue
-                      ? `${COLORS.red}60`
-                      : (line.value ? `${getColor()}40` : `${COLORS.red}40`);
+                      ? 'color-mix(in srgb, var(--mantine-color-jamlRed-6) 60%, transparent)'
+                      : (line.value ? `${getColor()}40` : 'color-mix(in srgb, var(--mantine-color-jamlRed-6) 40%, transparent)');
                   }
                 }}
+                className={styles.block}
                 style={{
-                  ...BLOCK_STYLE,
                   minWidth: line.value ? undefined : '80px',
-                  color: line.isInvalidValue ? COLORS.red : (line.value ? getColor() : COLORS.darkRed),
+                  color: line.isInvalidValue ? 'var(--mantine-color-jamlRed-6)' : (line.value ? getColor() : 'var(--mantine-color-jamlRed-8)'),
                   backgroundColor: line.isInvalidValue
-                    ? `${COLORS.red}15`
+                    ? 'color-mix(in srgb, var(--mantine-color-jamlRed-6) 15%, transparent)'
                     : (isEditing && editingPart === 'value')
                       ? `${getColor()}25`
-                      : (line.value ? `${getColor()}10` : `${COLORS.red}08`),
-                  border: `1px solid ${line.isInvalidValue ? `${COLORS.red}60` : (line.value ? `${getColor()}40` : `${COLORS.red}40`)}`,
+                      : (line.value ? `${getColor()}10` : 'color-mix(in srgb, var(--mantine-color-jamlRed-6) 8%, transparent)'),
+                  border: `1px solid ${line.isInvalidValue ? 'color-mix(in srgb, var(--mantine-color-jamlRed-6) 60%, transparent)' : (line.value ? `${getColor()}40` : 'color-mix(in srgb, var(--mantine-color-jamlRed-6) 40%, transparent)')}`,
                   textDecoration: line.isInvalidValue ? 'line-through' : 'none',
                 }}
               >
@@ -1336,157 +1247,11 @@ function JamlLine({
 }
 
 // Array item component
-interface ArrayItemProps {
-  value: string;
-  index: number;
-  isEditing: boolean;
-  lineHovered: boolean;
-  color: string;
-  darkColor: string;
-  onStartEdit: () => void;
-  onEndEdit: () => void;
-  onChange: (newValue: string) => void;
-  onRemove: () => void;
-  onEnter: () => void;
-  suggestions: string[];
-  selectedIndex: number;
-  onSuggestionSelect: (suggestion: string) => void;
-  onSuggestionHover: (index: number) => void;
-  showSuggestions: boolean;
-}
-
-function ArrayItem({
-  value,
-  index,
-  isEditing,
-  lineHovered,
-  color,
-  darkColor,
-  onStartEdit,
-  onEndEdit,
-  onChange,
-  onRemove,
-  onEnter,
-  suggestions,
-  selectedIndex,
-  onSuggestionSelect,
-  onSuggestionHover,
-  showSuggestions,
-}: ArrayItemProps) {
-  const { hovered, ref } = useHover();
-  const [localValue, setLocalValue] = useState(value);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const targetRef = useRef<HTMLDivElement>(null);
-  const isClickingSuggestion = useRef(false);
-
-
-
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-      setLocalValue(value);
-    }
-  }, [isEditing, value]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const finalValue = suggestions.length === 1 ? suggestions[0]
-        : (selectedIndex >= 0 && selectedIndex < suggestions.length) ? suggestions[selectedIndex]
-          : localValue;
-      onChange(finalValue);
-      onEndEdit();
-      onEnter();
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      onSuggestionHover(Math.min(selectedIndex + 1, suggestions.length - 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      onSuggestionHover(Math.max(selectedIndex - 1, 0));
-    } else if (e.key === 'Escape') {
-      onEndEdit();
-    } else if (e.key === 'Backspace' && localValue === '') {
-      e.preventDefault();
-      onRemove();
-      onEndEdit();
-    }
-  };
-
-  const handleBlur = () => {
-    requestAnimationFrame(() => {
-      if (!isClickingSuggestion.current) {
-        onEndEdit();
-      }
-    });
-  };
-
-  return (
-    <Popover opened={showSuggestions} position={popoverPosition} offset={8} withArrow shadow="lg">
-      <Popover.Target>
-        <Box
-          ref={(node) => {
-            // Merge refs
-            (ref as any).current = node;
-            (targetRef as any).current = node;
-          }}
-          onClick={onStartEdit}
-          style={{
-            ...BLOCK_STYLE,
-            minWidth: '24px',
-            backgroundColor: isEditing ? `${color}20` : (hovered ? `${color}15` : `${darkColor}08`),
-            border: `1px solid ${hovered || isEditing ? color : `${darkColor}40`}`,
-          }}
-        >
-          {/* No floating x-out button - use left delete zone instead */}
-          {isEditing ? (
-            <input
-              ref={inputRef}
-              value={localValue}
-              onChange={(e) => setLocalValue(e.currentTarget.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={handleBlur}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: darkColor,
-                fontFamily: MONO_FONT,
-                fontSize: '13px',
-                fontWeight: 600,
-                width: `${Math.max(localValue.length, 2)}ch`,
-                padding: 0,
-                textAlign: 'center',
-              }}
-            />
-          ) : (
-            <span style={{ color: darkColor, fontSize: '13px', fontWeight: 600 }}>
-              {value}
-            </span>
-          )}
-        </Box>
-      </Popover.Target>
-      <Popover.Dropdown p={6} style={{ minWidth: '100px' }}>
-        <SuggestionList
-          suggestions={suggestions}
-          selectedIndex={selectedIndex}
-          onSelect={(s) => {
-            isClickingSuggestion.current = true;
-            onSuggestionSelect(s);
-            requestAnimationFrame(() => { isClickingSuggestion.current = false; });
-          }}
-          onHover={onSuggestionHover}
-        />
-      </Popover.Dropdown>
-    </Popover>
-  );
-}
 
 // Long-form array item component (vertical YAML style with dashes)
+
 interface LongFormArrayItemProps {
   value: string;
-  index: number;
   isEditing: boolean;
   lineHovered: boolean;
   color: string;
@@ -1496,7 +1261,7 @@ interface LongFormArrayItemProps {
   onChange: (newValue: string) => void;
   onRemove: () => void;
   onEnter: () => void;
-  suggestions: string[];
+  suggestions: Array<string>;
   selectedIndex: number;
   onSuggestionSelect: (suggestion: string) => void;
   onSuggestionHover: (index: number) => void;
@@ -1505,7 +1270,6 @@ interface LongFormArrayItemProps {
 
 function LongFormArrayItem({
   value,
-  index,
   isEditing,
   lineHovered,
   color,
@@ -1527,13 +1291,11 @@ function LongFormArrayItem({
   const targetRef = useRef<HTMLDivElement>(null);
   const isClickingSuggestion = useRef(false);
 
-
-
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
       inputRef.current.select();
-      setLocalValue(value);
+      setTimeout(() => setLocalValue(value), 0);
     }
   }, [isEditing, value]);
 
@@ -1583,14 +1345,14 @@ function LongFormArrayItem({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: (hovered || lineHovered) ? `${COLORS.darkOrange}20` : 'transparent',
+          backgroundColor: (hovered || lineHovered) ? 'color-mix(in srgb, var(--mantine-color-jamlOrange-8) 20%, transparent)' : 'transparent',
           borderRadius: '3px',
           cursor: 'pointer',
           opacity: (hovered || lineHovered) ? 1 : 0,
           transition: 'all 0.15s',
         }}
       >
-        <IconMinus size={12} color={COLORS.orange} />
+        <IconMinus size={12} color={'var(--mantine-color-jamlOrange-6)'} />
       </Box>
 
       {/* Value */}
@@ -1599,11 +1361,13 @@ function LongFormArrayItem({
           <Box
             ref={targetRef}
             onClick={onStartEdit}
+            className={styles.block}
             style={{
-              ...BLOCK_STYLE,
-              minWidth: '32px',
-              backgroundColor: isEditing ? `${color}20` : (hovered ? `${color}15` : `${darkColor}08`),
-              border: `1px solid ${hovered || isEditing ? color : `${darkColor}40`}`,
+              height: 'auto',
+              minWidth: value ? undefined : '60px',
+              color: (isEditing) ? color : darkColor,
+              backgroundColor: (isEditing) ? `${color}15` : 'transparent',
+              border: `1px solid ${isEditing ? color : 'transparent'}`,
             }}
           >
             {isEditing ? (
@@ -1614,22 +1378,14 @@ function LongFormArrayItem({
                 onKeyDown={handleKeyDown}
                 onBlur={handleBlur}
                 onClick={(e) => e.stopPropagation()}
+                className={styles.input}
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
                   color: darkColor,
-                  fontFamily: MONO_FONT,
-                  fontSize: '13px',
-                  fontWeight: 600,
                   width: `${Math.max(localValue.length, 3)}ch`,
-                  padding: 0,
                 }}
               />
             ) : (
-              <span style={{ color: darkColor, fontSize: '13px', fontWeight: 600 }}>
-                {value}
-              </span>
+              <Text span>{value || ' '}</Text>
             )}
           </Box>
         </Popover.Target>
@@ -1652,7 +1408,7 @@ function LongFormArrayItem({
 
 // Suggestion list
 interface SuggestionListProps {
-  suggestions: string[];
+  suggestions: Array<string>;
   selectedIndex: number;
   onSelect: (suggestion: string) => void;
   onHover: (index: number) => void;
@@ -1668,7 +1424,7 @@ function SuggestionList({ suggestions, selectedIndex, onSelect, onHover }: Sugge
   }
 
   return (
-    <Stack gap={0} onMouseDown={(e) => e.preventDefault()} style={{ maxHeight: '200px', overflowY: 'auto' }}>
+    <Stack gap={0} onMouseDown={(e) => e.preventDefault()} className={styles.suggestionList}>
       {suggestions.map((suggestion, index) => {
         const isSelected = index === selectedIndex;
         // Determine category color based on simple heuristics or passed types? 
@@ -1679,22 +1435,11 @@ function SuggestionList({ suggestions, selectedIndex, onSelect, onHover }: Sugge
             key={suggestion}
             onClick={() => onSelect(suggestion)}
             onMouseEnter={() => onHover(index)}
-            style={{
-              padding: '6px 10px',
-              cursor: 'pointer',
-              backgroundColor: isSelected ? COLORS.darkBlue : 'transparent',
-              color: isSelected ? COLORS.white : '#333',
-              fontFamily: MONO_FONT,
-              fontSize: '13px',
-              fontWeight: isSelected ? 600 : 500,
-              transition: 'background-color 0.1s',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
+            className={styles.suggestionItem}
+            data-selected={isSelected}
           >
             <span>{suggestion}</span>
-            {isSelected && <span style={{ opacity: 0.5, fontSize: '10px' }}>↵</span>}
+            {isSelected && <span className={styles.selectionIndicator}>↵</span>}
           </Box>
         );
       })}
