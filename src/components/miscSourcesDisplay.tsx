@@ -1,20 +1,26 @@
-import React from 'react';
-import { MiscCardSource } from "../modules/GameEngine";
-import { Accordion, Box, Center, Group, Paper, Text, Title, useMantineTheme } from "@mantine/core";
-import { IconPlus, IconMinus } from "@tabler/icons-react";
-import { Tooltip } from "@mantine/core";
-import { useCardStore } from "../modules/state/store.ts";
+import * as React from 'react';
 import { useEffect, useState } from "react";
-import { EmblaCarouselType } from 'embla-carousel';
+import {
+    Accordion,
+    Box,
+    Center,
+    Group,
+    Text,
+    Title,
+    Tooltip,
+    useMantineTheme
+} from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
-import { LOCATIONS } from "../modules/const.ts";
+import { IconMinus, IconPlus } from "@tabler/icons-react";
+import { type EmblaCarouselType } from 'embla-carousel';
 import { toHeaderCase } from "js-convert-case";
+import { LOCATIONS } from "../modules/const.ts";
+import { type MiscCardSource } from "../modules/GameEngine";
+import { type Joker_Final, type StandardCard_Final } from "../modules/GameEngine/CardEngines/Cards.ts";
 import { BuyWrapper } from "./buyerWrapper.tsx";
 import { GameCard } from "./Rendering/cards.tsx";
-import { BoosterPack, Voucher } from "./Rendering/gameElements.tsx";
-import { Boss } from "./Rendering/gameElements.tsx";
-import { Tag } from "./Rendering/gameElements.tsx";
-import { Joker_Final, StandardCard_Final } from "../modules/GameEngine/CardEngines/Cards.ts";
+import { BoosterPack, Boss, Tag, Voucher } from "./Rendering/gameElements.tsx";
+import { useCardStore } from "../modules/state/store.ts";
 
 export default function MiscCardSourcesDisplay({ miscSources, boosterQueue, bossQueue, tagQueue, voucherQueue, wheelQueue, auraQueue, draws, onAddSource, addedSourceNames }: {
     miscSources?: MiscCardSource[],
@@ -173,7 +179,9 @@ export default function MiscCardSourcesDisplay({ miscSources, boosterQueue, boss
                                                         card: card
                                                     }}
                                                 >
-                                                    <GameCard card={card} />
+                                                    <Box style={{ width: 80, height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <GameCard card={card} />
+                                                    </Box>
                                                 </BuyWrapper>
 
                                             </Carousel.Slide>
@@ -223,7 +231,9 @@ export default function MiscCardSourcesDisplay({ miscSources, boosterQueue, boss
                                                     card: voucher
                                                 }}
                                             >
-                                                <Voucher voucherName={voucher} />
+                                                <Box style={{ width: 80, height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Voucher voucherName={voucher} />
+                                                </Box>
                                             </BuyWrapper>
 
                                         </Carousel.Slide>

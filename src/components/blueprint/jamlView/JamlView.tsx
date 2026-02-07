@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     ActionIcon,
     Autocomplete,
@@ -24,6 +24,8 @@ import { DragScroll } from "../../DragScroller.tsx";
 import { GameCard } from "../../Rendering/cards.tsx";
 import { Boss, Tag as RenderTag, Voucher } from "../../Rendering/gameElements.tsx";
 import { JamlEditor } from "./JamlEditor.tsx";
+import yaml from "js-yaml";
+import { startJamlSearchWasm, cancelSearchWasm } from "../../../lib/motelyWasm.ts";
 import type { Ante, Pack } from "../../../modules/GameEngine/CardEngines/Cards.ts";
 
 // Extract all antes referenced in JAML clauses
@@ -538,6 +540,13 @@ function JamlView() {
     const [editorOpened, { toggle: toggleEditor }] = useDisclosure(false);
     const [jamlConfig, setJamlConfig] = useState<any>(null);
     const [jamlValid, setJamlValid] = useState<boolean>(false);
+    const [wasmStatus, setWasmStatus] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
+    const [wasmError, setWasmError] = useState<string | null>(null);
+    const [wasmSeedsSearched, setWasmSeedsSearched] = useState(0);
+    const [wasmResultCount, setWasmResultCount] = useState(0);
+    const [wasmResults, setWasmResults] = useState<Array<{ seed: string; score: number }>>([]);
+    const wasmSearchIdRef = useRef<string | null>(null);
+    const wasmSeenRef = useRef<Set<string>>(new Set());
 
     // Prefetch next seeds for smooth scrolling (Time-Sliced)
     useEffect(() => {
@@ -604,6 +613,72 @@ function JamlView() {
     const handleJamlChange = useCallback((parsed: any, isValid: boolean) => {
         setJamlConfig(parsed);
         setJamlValid(isValid);
+    }, []);
+
+    const handleWasmSearch = useCallback(async () => {
+        if (!jamlValid || !jamlConfig) {
+            setWasmError('Invalid JAML');
+            setWasmStatus('error');
+            return;
+        }
+
+        setWasmStatus('running');
+        setWasmError(null);
+        setWasmSeedsSearched(0);
+        setWasmResultCount(0);
+        setWasmResults([]);
+        wasmSeenRef.current = new Set();
+
+        const jamlText = yaml.dump(jamlConfig, { indent: 2, lineWidth: -1 });
+
+        try {
+            const completion = startJamlSearchWasm(
+                jamlText,
+                {
+                    threadCount: typeof navigator !== 'undefined' ? Math.max(1, navigator.hardwareConcurrency - 1) : 4,
+                },
+                {
+                    onProgress: (searchId, totalSeedsSearched, _matchingSeeds, _elapsedMs, resultCount) => {
+                        if (!wasmSearchIdRef.current) wasmSearchIdRef.current = searchId;
+                        setWasmSeedsSearched(totalSeedsSearched);
+                        setWasmResultCount(resultCount);
+                    },
+                    onResult: (searchId, seed, score) => {
+                        if (!wasmSearchIdRef.current) wasmSearchIdRef.current = searchId;
+                        if (wasmSeenRef.current.has(seed)) return;
+                        wasmSeenRef.current.add(seed);
+                        setWasmResults(prev => {
+                            if (prev.length >= 200) return prev;
+                            return [{ seed, score }, ...prev];
+                        });
+                    },
+                }
+            );
+
+            const finalStatus = await completion;
+            if (finalStatus.error) {
+                setWasmStatus('error');
+                setWasmError(finalStatus.error);
+            } else {
+                setWasmStatus('done');
+            }
+            if (wasmSearchIdRef.current === finalStatus.searchId) {
+                wasmSearchIdRef.current = null;
+            }
+        } catch (err: any) {
+            setWasmStatus('error');
+            setWasmError(err?.message || String(err));
+        }
+    }, [jamlValid, jamlConfig]);
+
+    const handleWasmStop = useCallback(async () => {
+        const searchId = wasmSearchIdRef.current;
+        if (!searchId) return;
+        try {
+            await cancelSearchWasm(searchId);
+        } catch { /* ignore */ }
+        wasmSearchIdRef.current = null;
+        setWasmStatus('idle');
     }, []);
 
     // Extract antes from JAML config
@@ -865,6 +940,57 @@ function JamlView() {
                 <Box mb="sm">
                     <JamlEditor onJamlChange={handleJamlChange} />
                 </Box>
+                <Paper p="xs" radius="md" style={{ backgroundColor: CONFIG_BG.bar, border: 'none' }} mb="sm">
+                    <Group justify="space-between" align="center">
+                        <Group gap="xs">
+                            <Button
+                                size="xs"
+                                variant={wasmStatus === 'running' ? 'filled' : 'light'}
+                                color={wasmStatus === 'running' ? 'red' : 'blue'}
+                                onClick={wasmStatus === 'running' ? handleWasmStop : handleWasmSearch}
+                                disabled={!jamlValid}
+                            >
+                                {wasmStatus === 'running' ? 'Stop WASM Search' : 'Run WASM Search'}
+                            </Button>
+                            <Text size="xs" c="dimmed">
+                                Seeds: {wasmSeedsSearched.toLocaleString()} • Results: {wasmResultCount.toLocaleString()}
+                            </Text>
+                        </Group>
+                        <Group gap="xs">
+                            <Button
+                                size="xs"
+                                variant="subtle"
+                                onClick={() => {
+                                    if (!wasmResults.length || !navigator?.clipboard) return;
+                                    const text = wasmResults.map(r => r.seed).join('\n');
+                                    navigator.clipboard.writeText(text).catch(() => {});
+                                }}
+                            >
+                                Copy Seeds
+                            </Button>
+                            <Text size="xs" c="dimmed">
+                                Showing: {wasmResults.length}/200
+                            </Text>
+                        </Group>
+                        {wasmError && (
+                            <Text size="xs" c="red">
+                                {wasmError}
+                            </Text>
+                        )}
+                    </Group>
+                </Paper>
+                {wasmResults.length > 0 && (
+                    <Paper p="xs" radius="md" style={{ backgroundColor: CONFIG_BG.bar, border: 'none' }} mb="sm">
+                        <Stack gap={4}>
+                            {wasmResults.map((r) => (
+                                <Group key={`${r.seed}-${r.score}`} justify="space-between">
+                                    <Text size="xs">{r.seed}</Text>
+                                    <Text size="xs" c="dimmed">{r.score}</Text>
+                                </Group>
+                            ))}
+                        </Stack>
+                    </Paper>
+                )}
             </Collapse>
 
             {/* CSS to hide scrollbars */}

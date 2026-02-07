@@ -97,25 +97,9 @@ function HeroText() {
                     </Text>
                 </Container>
 
-                <div className={HeroClasses.controls}>
-                    <Stack gap={'sm'}>
-                        <QuickAnalyze />
-                        <Text ta={'right'} fz={'sm'} c={'dimmed'}>
-                            Want to search for seeds instead ?
-                            Try {" "}
-                            <Text
-                                component={'a'}
-                                fz={'sm'}
-                                style={{ textDecoration: 'underline' }}
-                                href={'https://github.com/OptimusPi/MotelyJAML/releases/tag/v1.0.0'}
-                            >
-                                MotelyJAML
-                            </Text>
-                            {" "}by pifreak
-                        </Text>
-                    </Stack>
-
-                </div>
+                <Stack gap={'sm'}>
+                    <QuickAnalyze />
+                </Stack>
 
             </div>
         </Container>

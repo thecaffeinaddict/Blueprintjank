@@ -173,55 +173,31 @@ export default function NavBar() {
                         />
                     </Box>
                     <Box flex={1}>
-                        <Group gap="xs" wrap="nowrap" align="flex-end">
-                            <NumberInput
-                                label={'Min Ante'}
-                                value={minAnte}
-                                onChange={(val) => {
-                                    const newMin = Number(val) || 0;
-                                    setMinAnte(Math.max(0, Math.min(newMin, maxAnte)));
-                                }}
-                                min={0}
-                                max={maxAnte}
-                                size="sm"
-                                w="50%"
-                                styles={{
-                                    input: {
-                                        height: 'calc(var(--input-height-sm) + 4px)',
-                                        fontSize: 'var(--mantine-font-size-sm)'
-                                    },
-                                    label: {
-                                        fontSize: 'var(--mantine-font-size-sm)'
-                                    }
-                                }}
-                            />
-                            <NumberInput
-                                label={'Max Ante'}
-                                value={maxAnte}
-                                onChange={(val) => {
-                                    const newMax = Number(val) || 8;
-                                    setMaxAnte(Math.max(minAnte, Math.min(newMax, 39)));
-                                }}
-                                min={minAnte}
-                                max={39}
-                                size="sm"
-                                w="50%"
-                                styles={{
-                                    input: {
-                                        height: 'calc(var(--input-height-sm) + 4px)',
-                                        fontSize: 'var(--mantine-font-size-sm)'
-                                    },
-                                    label: {
-                                        fontSize: 'var(--mantine-font-size-sm)'
-                                    }
-                                }}
-                            />
-                        </Group>
+                        <NumberInput
+                            label={'Max Ante'}
+                            value={maxAnte}
+                            onChange={(val) => {
+                                const newMax = Number(val) || 8;
+                                setMaxAnte(Math.max(minAnte, Math.min(newMax, 39)));
+                            }}
+                            min={minAnte}
+                            max={39}
+                            size="sm"
+                            styles={{
+                                input: {
+                                    height: 'calc(var(--input-height-sm) + 4px)',
+                                    fontSize: 'var(--mantine-font-size-sm)'
+                                },
+                                label: {
+                                    fontSize: 'var(--mantine-font-size-sm)'
+                                }
+                            }}
+                        />
                     </Box>
                 </Group>
                 <Group grow gap="xs" mb="xs">
                     <Select
-                        label={'Deck'}
+                        label={'Choose Deck'}
                         value={deck}
                         onChange={(value) => {
                             if (value) setDeck(value);
@@ -259,7 +235,7 @@ export default function NavBar() {
                         }}
                     />
                     <Select
-                        label={'Stake'}
+                        label={'Choose Stake'}
                         value={stake}
                         onChange={(value) => {
                             if (value) setStake(value);
@@ -295,29 +271,30 @@ export default function NavBar() {
                     It is recommended to keep this number under 200.
                 </Text>
                 <Button.Group w={'100%'} mb="xs">
-                    <Button variant="default" c={'blue'} size="sm" onClick={() => setCardsPerAnte(50)}>50</Button>
-                    <Button variant="default" c={'red'} size="sm" onClick={() => setCardsPerAnte(Math.max(cardsPerAnte - 50, 0))}>-50</Button>
-                    <Button.GroupSection flex={1} variant="default" miw={60} style={{ fontSize: 'var(--mantine-font-size-sm)', padding: '2px 8px' }}>
+                    <Button variant="default" color="balatroBlue" size="sm" onClick={() => setCardsPerAnte(50)}>50</Button>
+                    <Button variant="default" color="balatroRed" size="sm" onClick={() => setCardsPerAnte(Math.max(cardsPerAnte - 50, 0))}>-50</Button>
+                    <Button.GroupSection flex={1} variant="default" miw={60} style={{ fontSize: 'var(--mantine-font-size-sm)', padding: '2px 8px', fontWeight: 800, textAlign: 'center' }}>
                         {cardsPerAnte}
                     </Button.GroupSection>
-                    <Button variant="default" c={'green'} size="sm"
+                    <Button variant="default" color="balatroGreen" size="sm"
                         onClick={() => setCardsPerAnte(Math.min(cardsPerAnte + 50, 1000))}>+50</Button>
-                    <Button variant="default" c={'blue'} size="sm" onClick={() => setCardsPerAnte(1000)}>1000</Button>
+                    <Button variant="default" color="balatroBlue" size="sm" onClick={() => setCardsPerAnte(1000)}>1000</Button>
                 </Button.Group>
                 <InputLabel fz="sm" mb="xs"> Cards per Misc source</InputLabel>
                 <Text fz={'sm'} c={'dimmed'} mb="xs">
                     It is recommended to keep this number under 50.
                 </Text>
                 <Button.Group w={'100%'} mb="xs">
-                    <Button variant="default" c={'blue'} size="sm" onClick={() => setMiscMaxSource(15)}>15</Button>
-                    <Button variant="default" c={'red'} size="sm" onClick={() => setMiscMaxSource(Math.max(maxMiscCardSource - 5, 0))}>-5</Button>
-                    <Button.GroupSection flex={1} variant="default" miw={60} style={{ fontSize: 'var(--mantine-font-size-sm)', padding: '2px 8px' }}>
+                    <Button variant="default" color="balatroBlue" size="sm" onClick={() => setMiscMaxSource(15)}>15</Button>
+                    <Button variant="default" color="balatroRed" size="sm" onClick={() => setMiscMaxSource(Math.max(maxMiscCardSource - 5, 0))}>-5</Button>
+                    <Button.GroupSection flex={1} variant="default" miw={60} style={{ fontSize: 'var(--mantine-font-size-sm)', padding: '2px 8px', fontWeight: 800, textAlign: 'center' }}>
                         {maxMiscCardSource}
                     </Button.GroupSection>
-                    <Button variant="default" c={'green'} size="sm"
+                    <Button variant="default" color="balatroGreen" size="sm"
                         onClick={() => setMiscMaxSource(Math.min(maxMiscCardSource + 5, 100))}>+5</Button>
-                    <Button variant="default" c={'blue'} size="sm" onClick={() => setMiscMaxSource(100)}>100</Button>
+                    <Button variant="default" color="balatroBlue" size="sm" onClick={() => setMiscMaxSource(100)}>100</Button>
                 </Button.Group>
+
                 <Group grow gap="xs" mb="xs">
                     <NativeSelect
                         label={'Version'}

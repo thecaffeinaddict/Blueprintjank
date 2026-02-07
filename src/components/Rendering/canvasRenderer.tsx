@@ -1,7 +1,7 @@
-import React, {useEffect, useRef, useState} from "react";
-import {AspectRatio} from "@mantine/core";
-import {useForceUpdate, useHover, useMergedRef, useMouse, useResizeObserver} from "@mantine/hooks";
-import type {Layer} from "../../modules/classes/Layer.ts";
+import * as React from "react";
+import { AspectRatio } from "@mantine/core";
+import { useForceUpdate, useHover, useMergedRef, useMouse, useResizeObserver } from "@mantine/hooks";
+import type { Layer } from "../../modules/classes/Layer.ts";
 
 const globalImageCache = new Map<string, HTMLImageElement>();
 interface RenderCanvasProps {
@@ -12,17 +12,17 @@ interface RenderCanvasProps {
 }
 
 
-function loadImage(url:string): Promise<HTMLImageElement> {
-    return new Promise(resolve=>{
+function loadImage(url: string): Promise<HTMLImageElement> {
+    return new Promise(resolve => {
         const image = new Image();
-        image.addEventListener('load',()=>{
+        image.addEventListener('load', () => {
             resolve(image);
         });
-        image.src=url;
+        image.src = url;
     })
 }
 
-async function loadAllImagesIntoCache(){
+async function loadAllImagesIntoCache() {
     const urls = [
         "images/8BitDeck.png",
         "images/BlindChips.png",
@@ -43,7 +43,7 @@ async function loadAllImagesIntoCache(){
 }
 
 loadAllImagesIntoCache()
-    .catch(err=>{console.log(err)});
+    .catch(err => { console.log(err) });
 export function renderImage(
     canvas: HTMLCanvasElement,
     context: CanvasRenderingContext2D,
@@ -61,9 +61,8 @@ export function renderImage(
         // Don't set style.width/height here - let CSS handle scaling
     }
 
-    canvas.style.imageRendering = 'auto';
-    context.imageSmoothingEnabled = true;
-    context.imageSmoothingQuality = 'high';
+    canvas.style.imageRendering = 'pixelated';
+    context.imageSmoothingEnabled = false;
 
     // Save context state before modifying
     context.save();
@@ -111,78 +110,78 @@ interface SimpleRenderProps {
 
 export const SimpleRenderCanvas = React.forwardRef<HTMLCanvasElement, SimpleRenderProps>(
     ({ layers, invert = false }, ref) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const mergedRef = useMergedRef(canvasRef, ref);
-    const [ratio, setRatio] = useState(3 / 4);
-    const forceUpdate = useForceUpdate();
-    useEffect(() => {
-        if (!canvasRef.current || !layers || layers.length === 0) return;
-        const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
-        if (!context) return;
+        const canvasRef = React.useRef<HTMLCanvasElement>(null);
+        const mergedRef = useMergedRef(canvasRef, ref);
+        const [ratio, setRatio] = React.useState(3 / 4);
+        const forceUpdate = useForceUpdate();
+        React.useEffect(() => {
+            if (!canvasRef.current || !layers || layers.length === 0) return;
+            const canvas = canvasRef.current;
+            const context = canvas.getContext('2d');
+            if (!context) return;
 
-        context.clearRect(0, 0, canvas.width, canvas.height);
+            context.clearRect(0, 0, canvas.width, canvas.height);
 
-        layers
-            .sort((a, b) => a.order - b.order)
-            .forEach(layer => {
-                if (globalImageCache.has(layer.source)) {
-                    const image = globalImageCache.get(layer.source) as HTMLImageElement;
-                    const imageRatio = renderImage(canvas, context, image, layer);
-                    if (layer.order === 0) {
-                        setRatio(imageRatio);
-                    }
-                    return;
-                }
-                loadImage(layer.source)
-                    .then((img: HTMLImageElement) => {
-                        const imageRatio = renderImage(canvas, context, img, layer);
-                        globalImageCache.set(layer.source, img);
+            layers
+                .sort((a, b) => a.order - b.order)
+                .forEach(layer => {
+                    if (globalImageCache.has(layer.source)) {
+                        const image = globalImageCache.get(layer.source) as HTMLImageElement;
+                        const imageRatio = renderImage(canvas, context, image, layer);
                         if (layer.order === 0) {
                             setRatio(imageRatio);
                         }
-                        forceUpdate()
-                    })
-            });
+                        return;
+                    }
+                    loadImage(layer.source)
+                        .then((img: HTMLImageElement) => {
+                            const imageRatio = renderImage(canvas, context, img, layer);
+                            globalImageCache.set(layer.source, img);
+                            if (layer.order === 0) {
+                                setRatio(imageRatio);
+                            }
+                            forceUpdate()
+                        })
+                });
 
-        if (invert) {
-            canvas.style.filter = 'invert(0.8)';
-        } else {
-            canvas.style.filter = 'none';
-        }
-    }, [layers, invert, forceUpdate]);
+            if (invert) {
+                canvas.style.filter = 'invert(0.8)';
+            } else {
+                canvas.style.filter = 'none';
+            }
+        }, [layers, invert, forceUpdate]);
 
-    return (
-        <AspectRatio ratio={ratio} w="100%" h="100%" style={{ maxWidth: '100%', maxHeight: '100%', overflow: 'visible' }}>
-            <canvas
-                ref={mergedRef}
-                style={{
-                    borderRadius: '6px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                    width: '100%',
-                    height: '100%',
-                    display: 'block'
-                }}
-            />
-        </AspectRatio>
-    );
-});
+        return (
+            <AspectRatio ratio={ratio} w="100%" h="100%" style={{ maxWidth: '100%', maxHeight: '100%', overflow: 'visible' }}>
+                <canvas
+                    ref={mergedRef}
+                    style={{
+                        borderRadius: '6px',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                        width: '100%',
+                        height: '100%',
+                        display: 'block'
+                    }}
+                />
+            </AspectRatio>
+        );
+    });
 
 SimpleRenderCanvas.displayName = 'SimpleRenderCanvas';
 
 // Advanced card rendering with canvas
-export function RenderImagesWithCanvas({layers, invert = false, spacing = false}: RenderCanvasProps) {
-    const canvasRef = useRef(null);
-    const containerRef = useRef(null);
-    const [ratio, setRatio] = useState(3 / 4);
-    const animationFrameRef = useRef<number | null>(null);
-    const [elapsed, setElapsed] = useState(0);
+export function RenderImagesWithCanvas({ layers, invert = false, spacing = false }: RenderCanvasProps) {
+    const canvasRef = React.useRef(null);
+    const containerRef = React.useRef(null);
+    const [ratio, setRatio] = React.useState(3 / 4);
+    const animationFrameRef = React.useRef<number | null>(null);
+    const [elapsed, setElapsed] = React.useState(0);
     const forceUpdate = useForceUpdate();
 
     const hasAnimatedLayer = layers?.some(layer => layer.animated);
 
     // Animation loop for animated layers
-    useEffect(() => {
+    React.useEffect(() => {
         if (!hasAnimatedLayer) return;
 
         let startTime: number;
@@ -202,7 +201,7 @@ export function RenderImagesWithCanvas({layers, invert = false, spacing = false}
         };
     }, [hasAnimatedLayer]);
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (!canvasRef.current) return;
         if (!layers) return;
         const canvas: HTMLCanvasElement = canvasRef.current;
@@ -240,8 +239,8 @@ export function RenderImagesWithCanvas({layers, invert = false, spacing = false}
         }
     }, [layers, elapsed, forceUpdate, hasAnimatedLayer, invert]);
 
-    const {hovered, ref: hoverRef} = useHover();
-    const {ref: mouseRef, x: mouseX, y: mouseY} = useMouse();
+    const { hovered, ref: hoverRef } = useHover();
+    const { ref: mouseRef, x: mouseX, y: mouseY } = useMouse();
     const [rectRef, rect] = useResizeObserver();
     const mergedRef = useMergedRef(mouseRef, hoverRef, containerRef, rectRef);
 
@@ -251,11 +250,9 @@ export function RenderImagesWithCanvas({layers, invert = false, spacing = false}
     const tiltTransform = React.useMemo(() => {
         const x = mouseX - rect.x;
         const y = mouseY - rect.y;
-        return `perspective(1000px) rotateX(${
-            (y / rect.height) * -(SCALE_Y * 2) + SCALE_Y
-        }deg) rotateY(${
-            (x / rect.width) * (SCALE_X * 2) - SCALE_X
-        }deg) translateZ(10px)`;
+        return `perspective(1000px) rotateX(${(y / rect.height) * -(SCALE_Y * 2) + SCALE_Y
+            }deg) rotateY(${(x / rect.width) * (SCALE_X * 2) - SCALE_X
+            }deg) translateZ(10px)`;
     }, [mouseX, mouseY, rect.x, rect.y, rect.width, rect.height]);
 
     return (
