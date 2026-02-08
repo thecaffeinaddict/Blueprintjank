@@ -150,7 +150,7 @@ export default function NavBar() {
                             label: (
                                 <Group gap={4} wrap="nowrap" align="center">
                                     <img
-                                        src="/images/JAML.ico"
+                                        src={`${import.meta.env.BASE_URL}images/JAML.ico`}
                                         alt="JAML"
                                         style={{ width: '18px', height: '18px', objectFit: 'contain' }}
                                     />
