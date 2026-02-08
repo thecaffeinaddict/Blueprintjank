@@ -34,6 +34,7 @@ function extractAntesFromJaml(jamlConfig: any): Array<number> {
     const extractFromClauses = (clauses: Array<any>) => {
         if (!clauses) return;
         clauses.forEach(clause => {
+            if (!clause) return;
             if (clause.antes && Array.isArray(clause.antes)) {
                 clause.antes.forEach((a: number) => antesSet.add(a));
             }
@@ -80,6 +81,7 @@ function extractSourcesFromJaml(jamlConfig: any): {
     const extractFromClauses = (clauses: Array<any>) => {
         if (!clauses) return;
         clauses.forEach(clause => {
+            if (!clause) return;
             // Check for voucher clauses
             if (clause.voucher || clause.vouchers) {
                 result.showVoucher = true;
@@ -208,7 +210,7 @@ function getCardGlow(card: any, jamlConfig: any, anteNum: number, slotIndex: num
     // Check must clauses first (red glow takes priority)
     if (jamlConfig.must) {
         for (const clause of jamlConfig.must) {
-            if (cardMatchesClause(card, clause, anteNum, slotIndex, slotType)) {
+            if (clause && cardMatchesClause(card, clause, anteNum, slotIndex, slotType)) {
                 return 'red';
             }
         }
@@ -217,7 +219,7 @@ function getCardGlow(card: any, jamlConfig: any, anteNum: number, slotIndex: num
     // Check should clauses (blue glow)
     if (jamlConfig.should) {
         for (const clause of jamlConfig.should) {
-            if (cardMatchesClause(card, clause, anteNum, slotIndex, slotType)) {
+            if (clause && cardMatchesClause(card, clause, anteNum, slotIndex, slotType)) {
                 return 'blue';
             }
         }
