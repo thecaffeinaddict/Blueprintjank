@@ -11,7 +11,7 @@ import { SeedResultProvider } from "./modules/state/analysisResultProvider.tsx";
 import { SeedOptionsProvider } from "./modules/state/optionsProvider.tsx";
 import { DownloadSeedResultProvider } from "./modules/state/downloadProvider.tsx";
 import { BlueprintThemeProvider, useBlueprintTheme } from "./modules/state/themeProvider.tsx";
-import { NextStepProvider, NextStepReact, type Tour, type Step } from 'nextstepjs';
+import { NextStepProvider, NextStep, type Tour, type Step } from 'nextstepjs';
 import { useCardStore } from "./modules/state/store.ts";
 
 const queryClient = new QueryClient()
@@ -324,11 +324,11 @@ function ProviderContainer({ children }: { children: React.ReactNode }) {
                     <SeedResultProvider>
                         <DownloadSeedResultProvider>
                             <NextStepProvider>
-                                <NextStepReact
+                                <NextStep
                                     steps={steps}
                                     onStepChange={handleStepChange}>
                                     {children}
-                                </NextStepReact>
+                                </NextStep>
                             </NextStepProvider>
                         </DownloadSeedResultProvider>
                     </SeedResultProvider>

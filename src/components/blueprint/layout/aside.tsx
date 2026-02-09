@@ -238,7 +238,10 @@ export function Aside() {
                 minWidth: '250px',
                 maxWidth: 'min(800px, calc(100% - 20px))',
                 overscrollBehavior: 'contain',
-                overflowX: 'hidden'
+                overflowX: 'hidden',
+                height: '100dvh',
+                display: 'flex',
+                flexDirection: 'column'
             }}
         >
             <Box
@@ -313,7 +316,7 @@ export function Aside() {
                     </Tabs.List>
                 </Tabs>
             </AppShell.Section>
-            <AppShell.Section style={{ overflowY: 'auto', overflowX: 'hidden', flex: 1 }}>
+            <AppShell.Section grow style={{ overflowY: 'auto', overflowX: 'hidden', flex: 1, minHeight: 0 }}>
                 <Tabs value={tab}>
                     <Tabs.Panel value="sources" maw={'100%'}>
                         {SeedResults ? (

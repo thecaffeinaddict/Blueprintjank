@@ -564,6 +564,7 @@ function JamlView() {
     // Progress: direct DOM updates, zero React re-renders
     const wasmSeedsSearchedRef = useRef(0);
     const wasmResultCountRef = useRef(0);
+    const wasmElapsedMsRef = useRef(0);
     const wasmProgressElRef = useRef<HTMLSpanElement>(null);
     const wasmProgressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     // Batch onResult into ref, flush periodically
@@ -652,13 +653,21 @@ function JamlView() {
         setWasmResults([]);
         wasmSeenRef.current = new Set();
         wasmResultBatchRef.current = [];
+        wasmElapsedMsRef.current = 0;
         if (wasmProgressElRef.current) wasmProgressElRef.current.textContent = '';
 
         // Direct DOM updates only — zero React re-renders during search
         if (wasmProgressTimerRef.current) clearInterval(wasmProgressTimerRef.current);
         wasmProgressTimerRef.current = setInterval(() => {
             if (wasmProgressElRef.current) {
-                wasmProgressElRef.current.textContent = `${wasmSeedsSearchedRef.current.toLocaleString()} seeds \u2022 ${wasmResultCountRef.current.toLocaleString()} hits`;
+                const searched = wasmSeedsSearchedRef.current;
+                const hits = wasmResultCountRef.current;
+                const elapsedS = wasmElapsedMsRef.current / 1000;
+                const speed = elapsedS > 0 ? Math.round(searched / elapsedS) : 0;
+                const hitsPerSec = elapsedS > 0 ? (hits / elapsedS).toFixed(2) : '0';
+                
+                wasmProgressElRef.current.textContent = 
+                    `${searched.toLocaleString()} seeds \u2022 ${hits.toLocaleString()} hits (${hitsPerSec} h/s) \u2022 ${speed.toLocaleString()} s/s \u2022 ${elapsedS.toFixed(1)}s`;
             }
             // Flush batched results
             if (wasmResultBatchRef.current.length > 0) {
@@ -677,13 +686,15 @@ function JamlView() {
             const completion = startJamlSearchWasm(
                 jamlText,
                 {
-                    threadCount: typeof navigator !== 'undefined' ? Math.max(1, navigator.hardwareConcurrency - 1) : 4,
+                    threadCount: navigator.hardwareConcurrency,
+                    batchSize: 2,
                 },
                 {
-                    onProgress: (searchId, totalSeedsSearched, _matchingSeeds, _elapsedMs, resultCount) => {
+                    onProgress: (searchId, totalSeedsSearched, _matchingSeeds, elapsedMs, resultCount) => {
                         if (!wasmSearchIdRef.current) wasmSearchIdRef.current = searchId;
                         wasmSeedsSearchedRef.current = totalSeedsSearched;
                         wasmResultCountRef.current = resultCount;
+                        wasmElapsedMsRef.current = elapsedMs;
                     },
                     onResult: (searchId, seed, score) => {
                         if (!wasmSearchIdRef.current) wasmSearchIdRef.current = searchId;
@@ -698,7 +709,13 @@ function JamlView() {
             // Final flush
             if (wasmProgressTimerRef.current) { clearInterval(wasmProgressTimerRef.current); wasmProgressTimerRef.current = null; }
             if (wasmProgressElRef.current) {
-                wasmProgressElRef.current.textContent = `${wasmSeedsSearchedRef.current.toLocaleString()} seeds \u2022 ${wasmResultCountRef.current.toLocaleString()} hits`;
+                const searched = wasmSeedsSearchedRef.current;
+                const hits = wasmResultCountRef.current;
+                const elapsedS = wasmElapsedMsRef.current / 1000;
+                const speed = elapsedS > 0 ? Math.round(searched / elapsedS) : 0;
+                const hitsPerSec = elapsedS > 0 ? (hits / elapsedS).toFixed(2) : '0';
+                wasmProgressElRef.current.textContent = 
+                    `${searched.toLocaleString()} seeds \u2022 ${hits.toLocaleString()} hits (${hitsPerSec} h/s) \u2022 ${speed.toLocaleString()} s/s \u2022 ${elapsedS.toFixed(1)}s`;
             }
             // Flush remaining results
             if (wasmResultBatchRef.current.length > 0) {
@@ -725,7 +742,12 @@ function JamlView() {
     const handleWasmStop = useCallback(async () => {
         if (wasmProgressTimerRef.current) { clearInterval(wasmProgressTimerRef.current); wasmProgressTimerRef.current = null; }
         if (wasmProgressElRef.current) {
-            wasmProgressElRef.current.textContent = `${wasmSeedsSearchedRef.current.toLocaleString()} seeds \u2022 ${wasmResultCountRef.current.toLocaleString()} hits`;
+            const searched = wasmSeedsSearchedRef.current;
+            const hits = wasmResultCountRef.current;
+            const elapsedS = wasmElapsedMsRef.current / 1000;
+            const speed = elapsedS > 0 ? Math.round(searched / elapsedS) : 0;
+            wasmProgressElRef.current.textContent = 
+                `${searched.toLocaleString()} seeds \u2022 ${hits.toLocaleString()} hits \u2022 ${speed.toLocaleString()} s/s \u2022 ${elapsedS.toFixed(1)}s`;
         }
         // Flush remaining results
         if (wasmResultBatchRef.current.length > 0) {

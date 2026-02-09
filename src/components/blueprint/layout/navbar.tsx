@@ -95,8 +95,8 @@ export default function NavBar() {
                 maxWidth: 'min(450px, 100%)',
                 overscrollBehavior: 'contain',
                 overflowX: 'hidden',
-                height: '100vh',
-                maxHeight: '100vh',
+                height: '100dvh',
+                maxHeight: '100dvh',
                 display: 'flex',
                 flexDirection: 'column',
             }}
@@ -276,10 +276,7 @@ export default function NavBar() {
                         }}
                     />
                 </Group>
-                <InputLabel fz="sm" mb="xs" mt="xs"> Cards per Ante</InputLabel>
-                <Text fz={'sm'} c={'dimmed'} mb="xs">
-                    It is recommended to keep this number under 200.
-                </Text>
+                <InputLabel>Cards per Ante</InputLabel>
                 <Button.Group w={'100%'} mb="xs">
                     <Button variant="default" size="sm" onClick={() => setCardsPerAnte(50)}>50</Button>
                     <Button variant="default" size="sm" onClick={() => setCardsPerAnte(Math.max(cardsPerAnte - 50, 0))}>-50</Button>
@@ -290,10 +287,7 @@ export default function NavBar() {
                         onClick={() => setCardsPerAnte(Math.min(cardsPerAnte + 50, 1000))}>+50</Button>
                     <Button variant="default" size="sm" onClick={() => setCardsPerAnte(1000)}>1000</Button>
                 </Button.Group>
-                <InputLabel fz="sm" mb="xs"> Cards per Misc source</InputLabel>
-                <Text fz={'sm'} c={'dimmed'} mb="xs">
-                    It is recommended to keep this number under 50.
-                </Text>
+                <InputLabel> Cards per Misc source</InputLabel>
                 <Button.Group w={'100%'} mb="xs">
                     <Button variant="default" size="sm" onClick={() => setMiscMaxSource(15)}>15</Button>
                     <Button variant="default" size="sm" onClick={() => setMiscMaxSource(Math.max(maxMiscCardSource - 5, 0))}>-5</Button>
@@ -353,7 +347,7 @@ export default function NavBar() {
                     </Box>
                 </Group>
             </AppShell.Section>
-            <AppShell.Section id="tool-buttons" mt="auto" mb="xs" style={{ flex: '0 0 auto' }}>
+            <AppShell.Section id="tool-buttons" mt="auto" pb="xs" style={{ flex: '0 0 auto', borderTop: `1px solid ${colorScheme.colorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-2)'}`, paddingTop: 'var(--mantine-spacing-xs)' }}>
                 <Stack gap="xs">
                     <Button
                         id="analyze-button"
