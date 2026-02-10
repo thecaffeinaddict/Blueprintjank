@@ -28,6 +28,6 @@ export default defineConfig({
   assetsInclude: ['**/*.wasm'],
   build: {
     target: 'esnext',
-  }
+  },
 })
 

@@ -61,8 +61,9 @@ export function renderImage(
         // Don't set style.width/height here - let CSS handle scaling
     }
 
-    canvas.style.imageRendering = 'pixelated';
-    context.imageSmoothingEnabled = false;
+    canvas.style.imageRendering = 'auto';
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
 
     // Save context state before modifying
     context.save();

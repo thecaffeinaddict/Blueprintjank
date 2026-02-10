@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Carousel } from "@mantine/carousel";
 import {
-    Accordion,
     AppShell,
     Badge,
     Box,
@@ -17,13 +16,11 @@ import {
     Stack,
     Tabs,
     Text,
-    MantineProvider
 } from "@mantine/core";
 
-import { JamlTheme } from "../../../themes/JamlTheme.ts";
 import { toHeaderCase } from "js-convert-case";
 import { useDisclosure, useViewportSize } from "@mantine/hooks";
-import { Boss, BoosterPack, Tag as RenderTag, Voucher } from "../../Rendering/gameElements.tsx";
+import { Boss, Tag as RenderTag, Voucher } from "../../Rendering/gameElements.tsx";
 import { BuyMetaData } from "../../../modules/classes/BuyMetaData.ts";
 import { BuyWrapper } from "../../buyerWrapper.tsx";
 import { LOCATIONS, LOCATION_TYPES, blinds, tagDescriptions } from "../../../modules/const.ts";
@@ -147,75 +144,45 @@ function AntePanel({ ante, tabName, timeTravelVoucherOffset }: {
                     </Fieldset>
                 </Group>
 
-                <Accordion
-                    key={`${tabName}-${selectedBlind}`}
-                    multiple={true}
-                    defaultValue={packs?.map((pack: Pack, index: number) => String(pack.name) + String(index)) ?? []}
-                    w={'100%'}
-                    variant={'separated'}
-                >
+                <Group grow wrap="wrap" align="flex-start" gap="sm" style={{ overflow: 'visible' }}>
                     {
                         packs.map((pack: Pack, index: number) => {
                             return (
-                                <Accordion.Item key={String(pack.name) + String(index)} value={String(pack.name) + String(index)}>
-                                    <Accordion.Control w={'100%'}>
-                                        <Group justify={'space-between'} pr={'1rem'}>
-                                            <Group>
-                                                <Text fw={500}>{toHeaderCase(String(pack.name))}</Text>
-                                                <Badge color={'blue'}> Cards: {pack.size}</Badge>
-                                            </Group>
-                                            <Badge>
-                                                Pick: {pack.choices}
-                                            </Badge>
-                                        </Group>
-                                    </Accordion.Control>
-                                    <Accordion.Panel>
-                                        <Box w={'100%'} key={index}>
-                                            <Carousel
-                                                type={'container'}
-                                                slideSize="90px"
-                                                slideGap={{ base: 'xs' }}
-                                                withControls={true}
-                                                height={190}
-                                                emblaOptions={{
-                                                    dragFree: true,
-                                                    containScroll: "keepSnaps",
-                                                    align: 'start'
-                                                }}
+                                <Fieldset key={String(pack.name) + String(index)} legend={
+                                    <Group gap="xs">
+                                        <Text fw={500}>{toHeaderCase(String(pack.name))}</Text>
+                                        <Badge color={'blue'} size="xs">Cards: {pack.size}</Badge>
+                                        <Badge size="xs">Pick: {pack.choices}</Badge>
+                                    </Group>
+                                } miw={200} style={{ overflow: 'visible' }}>
+                                    <Group gap="xs" wrap="nowrap" style={{ overflow: 'visible' }}>
+                                        {pack.cards.map((card, cardIndex) => (
+                                            <BuyWrapper
+                                                key={cardIndex}
+                                                metaData={
+                                                    new BuyMetaData({
+                                                        location: pack.name,
+                                                        locationType: LOCATION_TYPES.PACK,
+                                                        index: cardIndex,
+                                                        packIndex: index,
+                                                        ante: tabName,
+                                                        blind: selectedBlind,
+                                                        itemType: 'card',
+                                                        link: `https://balatrowiki.org/w/${card!.name}`,
+                                                        card: card,
+                                                        name: card!.name
+                                                    })
+                                                }
                                             >
-                                                {pack.cards.map((card, cardIndex) => (
-                                                    <Carousel.Slide key={cardIndex}>
-                                                        <BuyWrapper
-                                                            key={cardIndex}
-                                                            // bottomOffset={30}
-                                                            // topOffset={30}
-                                                            metaData={
-                                                                new BuyMetaData({
-                                                                    location: pack.name,
-                                                                    locationType: LOCATION_TYPES.PACK,
-                                                                    index: cardIndex,
-                                                                    packIndex: index,
-                                                                    ante: tabName,
-                                                                    blind: selectedBlind,
-                                                                    itemType: 'card',
-                                                                    link: `https://balatrowiki.org/w/${card!.name}`,
-                                                                    card: card,
-                                                                    name: card!.name
-                                                                })
-                                                            }
-                                                        >
-                                                            <GameCard card={card!} />
-                                                        </BuyWrapper>
-                                                    </Carousel.Slide>
-                                                ))}
-                                            </Carousel>
-                                        </Box>
-                                    </Accordion.Panel>
-                                </Accordion.Item>
+                                                <GameCard card={card!} />
+                                            </BuyWrapper>
+                                        ))}
+                                    </Group>
+                                </Fieldset>
                             )
                         })
                     }
-                </Accordion>
+                </Group>
             </Paper>
         </Tabs.Panel>
     )
@@ -552,7 +519,7 @@ function Main() {
     const SeedResults = useSeedResultsContainer()
     const viewMode = useCardStore(state => state.applicationState.viewMode);
     return (
-        <AppShell.Main>
+        <AppShell.Main style={{ overflow: 'hidden', height: '100dvh', display: 'flex', flexDirection: 'column' }}>
             {!SeedResults && <HomePage />}
             {SeedResults && viewMode === 'blueprint' && <SeedExplorer />}
             {SeedResults && viewMode === 'text' && <Index />}

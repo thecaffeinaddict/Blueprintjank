@@ -4,6 +4,7 @@ import {
     Box,
     Button,
     Group,
+    Image,
     InputLabel,
     NativeSelect,
     NumberInput,
@@ -13,10 +14,11 @@ import {
     Switch,
     Text,
     Tooltip,
-    useMantineColorScheme
+    useMantineColorScheme,
+    useMantineTheme
 } from "@mantine/core";
 
-import { DeckBackIcon, StakeChipIcon } from "../../Rendering/deckStakeIcons.tsx";
+import { DeckBackIcon } from "../../Rendering/deckStakeIcons.tsx";
 import {
     IconFileText,
     IconJoker,
@@ -32,12 +34,10 @@ import {RerollCalculatorModal} from "../../RerollCalculatorModal.tsx";
 import {GaEvent} from "../../../modules/useGA.ts";
 import { DrawSimulatorModal } from "../../DrawSimulatorModal.tsx";
 import SeedInputAutoComplete from "../../SeedInputAutoComplete.tsx";
-import { useBlueprintTheme } from "../../../modules/state/themeProvider.tsx";
 
 
 export default function NavBar() {
-    const { theme: themeName, setTheme, themes } = useBlueprintTheme()
-    const themeNames = Object.keys(themes);
+    const theme = useMantineTheme()
     const colorScheme = useMantineColorScheme()
     const viewMode = useCardStore(state => state.applicationState.viewMode);
     const setViewMode = useCardStore(state => state.setViewMode);
@@ -56,7 +56,6 @@ export default function NavBar() {
     const setDeck = useCardStore(state => state.setDeck);
     const setStake = useCardStore(state => state.setStake);
     const setVersion = useCardStore(state => state.setGameVersion);
-    const setMinAnte = useCardStore(state => state.setMinAnte);
     const setMaxAnte = useCardStore(state => state.setMaxAnte);
     const setCardsPerAnte = useCardStore(state => state.setCardsPerAnte);
     const setShowCardSpoilers = useCardStore(state => state.setShowCardSpoilers);
@@ -91,17 +90,18 @@ export default function NavBar() {
             p="xs"
             hidden={!settingsOpen}
             style={{
-                minWidth: '250px',
+                minWidth: 250,
                 maxWidth: 'min(450px, 100%)',
                 overscrollBehavior: 'contain',
                 overflowX: 'hidden',
-                height: '100dvh',
-                maxHeight: '100dvh',
+                overflowY: 'auto',
+                height: 'calc(100dvh - 60px)',
+                maxHeight: 'calc(100dvh - 60px)',
                 display: 'flex',
                 flexDirection: 'column',
+                paddingBottom: 'calc(var(--mantine-spacing-sm) + env(safe-area-inset-bottom, 0px))',
             }}
         >
-            <UnlocksModal />
             <UnlocksModal />
             <FeaturesModal />
             <DrawSimulatorModal />
@@ -149,10 +149,12 @@ export default function NavBar() {
                             value: 'jaml',
                             label: (
                                 <Group gap={4} wrap="nowrap" align="center">
-                                    <img
+                                    <Image
                                         src={`${import.meta.env.BASE_URL}images/JAML.ico`}
                                         alt="JAML"
-                                        style={{ width: '18px', height: '18px', objectFit: 'contain' }}
+                                        w={18}
+                                        h={18}
+                                        fit="contain"
                                     />
                                     <Text size="sm" style={{ whiteSpace: 'nowrap' }}>JAML</Text>
                                 </Group>
@@ -193,15 +195,6 @@ export default function NavBar() {
                             min={minAnte}
                             max={39}
                             size="sm"
-                            styles={{
-                                input: {
-                                    height: 'calc(var(--input-height-sm) + 4px)',
-                                    fontSize: 'var(--mantine-font-size-sm)'
-                                },
-                                label: {
-                                    fontSize: 'var(--mantine-font-size-sm)'
-                                }
-                            }}
                         />
                     </Box>
                 </Group>
@@ -231,18 +224,6 @@ export default function NavBar() {
                             "Erratic Deck"
                         ]}
                         leftSection={deck ? <DeckBackIcon deckName={deck} /> : null}
-                        styles={{
-                            input: {
-                                height: 'calc(var(--input-height-sm) + 4px)',
-                                fontSize: 'var(--mantine-font-size-sm)'
-                            },
-                            label: {
-                                fontSize: 'var(--mantine-font-size-sm)'
-                            },
-                            option: {
-                                fontSize: 'var(--mantine-font-size-sm)'
-                            }
-                        }}
                     />
                     <Select
                         label={'Choose Stake'}
@@ -257,23 +238,8 @@ export default function NavBar() {
                             "Green Stake",
                             "Black Stake",
                             "Blue Stake",
-                            "Purple Stake",
-                            "Orange Stake",
-                            "Gold Stake"
                         ]}
-                        leftSection={stake ? <StakeChipIcon stakeName={stake} /> : null}
-                        styles={{
-                            input: {
-                                height: 'calc(var(--input-height-sm) + 4px)',
-                                fontSize: 'var(--mantine-font-size-sm)'
-                            },
-                            label: {
-                                fontSize: 'var(--mantine-font-size-sm)'
-                            },
-                            option: {
-                                fontSize: 'var(--mantine-font-size-sm)'
-                            }
-                        }}
+                        leftSection={stake ? <DeckBackIcon deckName={deck} /> : null}
                     />
                 </Group>
                 <InputLabel>Cards per Ante</InputLabel>
@@ -305,15 +271,6 @@ export default function NavBar() {
                         value={version}
                         onChange={(e) => setVersion(e.currentTarget.value)}
                         size="sm"
-                        styles={{
-                            input: {
-                                height: 'calc(var(--input-height-sm) + 4px)',
-                                fontSize: 'var(--mantine-font-size-sm)'
-                            },
-                            label: {
-                                fontSize: 'var(--mantine-font-size-sm)'
-                            }
-                        }}
                     >
                         <option value="10106">1.0.1f</option>
                         <option value="10103">1.0.1c</option>
@@ -347,7 +304,16 @@ export default function NavBar() {
                     </Box>
                 </Group>
             </AppShell.Section>
-            <AppShell.Section id="tool-buttons" mt="auto" pb="xs" style={{ flex: '0 0 auto', borderTop: `1px solid ${colorScheme.colorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-2)'}`, paddingTop: 'var(--mantine-spacing-xs)' }}>
+            <AppShell.Section
+                id="tool-buttons"
+                mt="auto"
+                pb="xs"
+                style={{
+                    flex: '0 0 auto',
+                    borderTop: `1px solid ${colorScheme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[2]}`,
+                    paddingTop: 'var(--mantine-spacing-xs)'
+                }}
+            >
                 <Stack gap="xs">
                     <Button
                         id="analyze-button"

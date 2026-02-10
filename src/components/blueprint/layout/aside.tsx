@@ -1,7 +1,5 @@
 import React, {useState, useRef, useEffect} from "react";
-import {useMediaQuery} from "@mantine/hooks";
 import {
-    ActionIcon,
     AppShell,
     Badge,
     Box,
@@ -19,7 +17,7 @@ import {
     Title,
     useMantineTheme
 } from "@mantine/core";
-import {IconCalendarEvent, IconCards, IconCheck, IconPlayCard, IconShoppingCart, IconX} from "@tabler/icons-react";
+import {IconCalendarEvent, IconCards, IconCheck, IconPlayCard, IconShoppingCart} from "@tabler/icons-react";
 import {useCardStore} from "../../../modules/state/store.ts";
 import SearchSeedInput from "../../searchInput.tsx";
 import MiscCardSourcesDisplay from "../../miscSourcesDisplay.tsx";
@@ -226,16 +224,15 @@ export function Aside() {
 
     const tab = useCardStore(state => state.applicationState.asideTab);
     const setTab = useCardStore(state => state.setAsideTab);
-    const media = useMediaQuery("(min-width: 600px)");
 
     return (
         <AppShell.Aside
             ref={asideRef}
             p="xs"
             hidden={!asideOpen}
+            w={asideWidth}
             style={{
-                width: `${asideWidth}px`,
-                minWidth: '250px',
+                minWidth: 250,
                 maxWidth: 'min(800px, calc(100% - 20px))',
                 overscrollBehavior: 'contain',
                 overflowX: 'hidden',
@@ -246,6 +243,7 @@ export function Aside() {
         >
             <Box
                 ref={resizeHandleRef}
+                w={4}
                 onMouseDown={(e) => {
                     e.preventDefault();
                     setIsResizing(true);
@@ -255,7 +253,6 @@ export function Aside() {
                     left: 0,
                     top: 0,
                     bottom: 0,
-                    width: '4px',
                     cursor: 'col-resize',
                     backgroundColor: 'transparent',
                     zIndex: 10,
@@ -272,11 +269,9 @@ export function Aside() {
                     }
                 }}
             />
-            {!media && (
-                <AppShell.Section hiddenFrom={'sm'} mb="xs">
-                    <SearchSeedInput/>
-                </AppShell.Section>
-            )}
+            <AppShell.Section hiddenFrom={'sm'} mb="xs">
+                <SearchSeedInput/>
+            </AppShell.Section>
             <AppShell.Section>
                 <Text size="sm" fw={500} mb="xs">Card Sources</Text>
                 <Divider mb="xs" />
