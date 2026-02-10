@@ -1,14 +1,14 @@
 import React from "react";
 
 import { useViewportSize } from "@mantine/hooks";
-import { AppShell, ActionIcon, Box, Burger, Button, Center, Container, CopyButton, Group, Select, Title, Tooltip, useMantineColorScheme } from "@mantine/core";
-import { useCardStore } from "../../../modules/state/store.ts";
+import { IconMoon, IconSun } from "@tabler/icons-react";
+import { ActionIcon, AppShell, Box, Burger, Button, Center, Container, CopyButton, Group, Select, Title, Tooltip, useMantineColorScheme } from "@mantine/core";
 import SearchSeedInput from "../../searchInput.tsx";
 import { GaEvent } from "../../../modules/useGA.ts";
-import { IconInfoCircle, IconMoon, IconSun } from "@tabler/icons-react";
-import { useNextStep } from "nextstepjs";
 import { useBlueprintTheme } from "../../../modules/state/themeProvider.tsx";
+import { useCardStore } from "../../../modules/state/store.ts";
 import type { KnownThemes } from "../../../modules/state/themeProvider.tsx";
+
 
 export default function Header() {
     const { width } = useViewportSize();
@@ -19,7 +19,6 @@ export default function Header() {
     const outputOpened = useCardStore(state => state.applicationState.asideOpen);
     const toggleOutput = useCardStore(state => state.toggleOutput);
 
-    const { startNextStep, closeNextStep } = useNextStep();
     const colorScheme = useMantineColorScheme();
     const { theme: themeName, setTheme, themes } = useBlueprintTheme();
     const themeNames = Object.keys(themes);
@@ -39,9 +38,6 @@ export default function Header() {
                         </Center>
                     </Group>
                     <Group align={'center'}>
-                        <ActionIcon onClick={() => startNextStep('onboarding-tour')}>
-                            <IconInfoCircle />
-                        </ActionIcon>
                         {width > 600 && start && <Box id="search-input-header"><SearchSeedInput /></Box>}
                         {width > 700 && start && (
                             <CopyButton value={new URL(window.location.href).toString()}>

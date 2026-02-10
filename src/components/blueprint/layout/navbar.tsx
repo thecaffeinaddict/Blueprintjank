@@ -3,6 +3,7 @@ import {
     AppShell,
     Box,
     Button,
+    Divider,
     Group,
     Image,
     InputLabel,
@@ -164,41 +165,8 @@ export default function NavBar() {
                     mb="xs"
                     size="sm"
                 />
-            </AppShell.Section>
-            <AppShell.Section
-                pr="xs"
-                grow
-                my={0}
-                style={{
-                    overflowY: 'auto',
-                    overflowX: 'hidden',
-                    overscrollBehavior: 'contain',
-                    flex: '1 1 auto',
-                    minHeight: 0, // Important for flex scroll
-                }}
-            >
-                <Group grow gap="xs" mb="xs">
-                    <Box flex={1}>
-                        <SeedInputAutoComplete
-                            seed={seed}
-                            setSeed={setSeed}
-                        />
-                    </Box>
-                    <Box flex={1}>
-                        <NumberInput
-                            label={'Max Ante'}
-                            value={maxAnte}
-                            onChange={(val) => {
-                                const newMax = Number(val) || 8;
-                                setMaxAnte(Math.max(minAnte, Math.min(newMax, 39)));
-                            }}
-                            min={minAnte}
-                            max={39}
-                            size="sm"
-                        />
-                    </Box>
-                </Group>
-                <Group grow gap="xs" mb="xs">
+                <Divider mb='md' />
+                <Group align={'flex-end'}>
                     <Select
                         label={'Choose Deck'}
                         value={deck}
@@ -355,7 +323,6 @@ export default function NavBar() {
                             Reset
                         </Button>
                     </Group>
-
                 </Stack>
             </AppShell.Section>
         </AppShell.Navbar>
