@@ -7,25 +7,30 @@ import {
     Group,
     Image,
     InputLabel,
+    Modal,
     NativeSelect,
     NumberInput,
+    Paper,
     SegmentedControl,
     Select,
     Stack,
     Switch,
     Text,
+    Textarea,
     Tooltip,
     useMantineColorScheme,
     useMantineTheme
 } from "@mantine/core";
 
+import { useDisclosure } from "@mantine/hooks";
 import { DeckBackIcon } from "../../Rendering/deckStakeIcons.tsx";
 import {
     IconFileText,
     IconJoker,
     IconLayout,
     IconListSearch,
-    IconPlayCard
+    IconPlayCard,
+    IconUpload
 } from "@tabler/icons-react";
 import { useCardStore } from "../../../modules/state/store.ts";
 import UnlocksModal from "../../unlocksModal.tsx";
@@ -69,8 +74,30 @@ export default function NavBar() {
     const closeRerollCalculatorModal = useCardStore(state => state.closeRerollCalculatorModal);
     const reset = useCardStore(state => state.reset);
 
+    const [bulkSeedsOpened, { open: openBulkSeeds, close: closeBulkSeeds }] = useDisclosure(false);
+    const [bulkSeedsText, setBulkSeedsText] = React.useState('');
+
     const handleAnalyzeClick = () => {
         setStart(true);
+    }
+
+    const handleBulkSeedsImport = () => {
+        const parsed = bulkSeedsText
+            .split(/\r?\n/)
+            .map(line => {
+                const firstCol = line.split(',')[0].trim();
+                const stripped = firstCol.replace(/^["']|["']$/g, '');
+                return stripped;
+            })
+            .filter(s => s.length > 0 && /^[A-Z0-9]+$/i.test(s))
+            .map(s => s.toUpperCase());
+
+        if (parsed.length > 0) {
+            setSeed(parsed[0]);
+            setStart(true);
+            closeBulkSeeds();
+            setBulkSeedsText('');
+        }
     }
 
 
@@ -166,7 +193,28 @@ export default function NavBar() {
                     size="sm"
                 />
                 <Divider mb='md' />
-                <Group align={'flex-end'}>
+                 <Group grow gap="xs" mb="xs">
+                    <Box flex={1}>
+                        <SeedInputAutoComplete
+                            seed={seed}
+                            setSeed={setSeed}
+                        />
+                    </Box>
+                    <Box flex={1}>
+                        <NumberInput
+                            label={'Max Ante'}
+                            value={maxAnte}
+                            onChange={(val) => {
+                                const newMax = Number(val) || 8;
+                                setMaxAnte(Math.max(minAnte, Math.min(newMax, 39)));
+                            }}
+                            min={minAnte}
+                            max={39}
+                            size="sm"
+                        />
+                    </Box>
+                </Group>
+                <Group align={'flex-end'} grow>
                     <Select
                         label={'Choose Deck'}
                         value={deck}
@@ -174,6 +222,7 @@ export default function NavBar() {
                             if (value) setDeck(value);
                         }}
                         size="sm"
+                        flex={1}
                         data={[
                             "Red Deck",
                             "Blue Deck",
@@ -200,6 +249,7 @@ export default function NavBar() {
                             if (value) setStake(value);
                         }}
                         size="sm"
+                        flex={1}
                         data={[
                             "White Stake",
                             "Red Stake",
@@ -244,14 +294,12 @@ export default function NavBar() {
                         <option value="10103">1.0.1c</option>
                         <option value="10014">1.0.0n</option>
                     </NativeSelect>
-                </Group>
-                <Group grow gap="xs" mb="xs">
                     <Box>
-                        <Text mb={0} fz={'sm'}>Show Joker Spoilers</Text>
+                        <Text mb={'xs'} fz={'sm'}>Joker Spoilers</Text>
                         <Tooltip label="Cards that give jokers, are replaced with the joker the card would give."
                             refProp="rootRef">
                             <Switch
-                                size={'sm'}
+                                size={'md'}
                                 checked={showCardSpoilers}
                                 thumbIcon={showCardSpoilers ? (<IconJoker size={12} color={'black'} />) : (
                                     <IconPlayCard size={12} color={'black'} />)}
@@ -260,11 +308,11 @@ export default function NavBar() {
                         </Tooltip>
                     </Box>
                     <Box id="setting-quick-reroll">
-                        <Text mb={0} fz={'xs'}>Quick Reroll</Text>
+                        <Text mb={'xs'} fz={'sm'}>Quick Reroll</Text>
                         <Tooltip label="Long pressing a card in the shop queue, will reroll that card."
                             refProp="rootRef">
                             <Switch
-                                size={'sm'}
+                                size={'md'}
                                 checked={useCardPeek}
                                 onChange={() => setUseCardPeek(!useCardPeek)}
                             />
@@ -291,6 +339,17 @@ export default function NavBar() {
                         fullWidth
                     >
                         Analyze Seed
+                    </Button>
+                    <Button
+                        id="import-seeds-button"
+                        onClick={openBulkSeeds}
+                        color="blue"
+                        variant="light"
+                        size="sm"
+                        fullWidth
+                        leftSection={<IconUpload size={16} />}
+                    >
+                        Import Seeds
                     </Button>
                     <Button
                         id="features-button"
@@ -325,6 +384,117 @@ export default function NavBar() {
                     </Group>
                 </Stack>
             </AppShell.Section>
+
+            {/* Import Seeds Modal */}
+            <Modal opened={bulkSeedsOpened} onClose={closeBulkSeeds} title="Import Seeds" size="md">
+                <Stack
+                    gap="md"
+                    onDragOver={(e) => {
+                        e.preventDefault();
+                        const textarea = e.currentTarget.querySelector('textarea');
+                        if (textarea) {
+                            textarea.style.backgroundColor = theme.colors.blue[9];
+                            textarea.style.borderColor = theme.colors.blue[5];
+                        }
+                    }}
+                    onDragLeave={(e) => {
+                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                            const textarea = e.currentTarget.querySelector('textarea');
+                            if (textarea) {
+                                textarea.style.backgroundColor = theme.colors.dark[7];
+                                textarea.style.borderColor = '';
+                            }
+                        }
+                    }}
+                    onDrop={(e) => {
+                        e.preventDefault();
+                        const textarea = e.currentTarget.querySelector('textarea');
+                        if (textarea) {
+                            textarea.style.backgroundColor = theme.colors.dark[7];
+                            textarea.style.borderColor = '';
+                        }
+                        const files = e.dataTransfer.files;
+                        if (files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                                const content = evt.target?.result as string;
+                                setBulkSeedsText(content);
+                            };
+                            reader.readAsText(files[0]);
+                        }
+                    }}
+                >
+                    <Text size="sm" c="dimmed">
+                        Supports: .TXT, .CSV (first 8 chars), or paste directly. One seed per line.
+                    </Text>
+
+                    <Paper
+                        p="sm"
+                        radius="sm"
+                        style={{
+                            textAlign: 'center',
+                            cursor: 'pointer',
+                            backgroundColor: theme.colors.dark[6],
+                        }}
+                        component="label"
+                    >
+                        <Group justify="center" gap="xs">
+                            <IconUpload size={16} color={theme.colors.dark[2]} />
+                            <Text fw={500} size="sm">Click to browse files (.txt, .csv)</Text>
+                        </Group>
+                        <input
+                            type="file"
+                            accept=".txt,.csv"
+                            onChange={(e) => {
+                                const file = e.currentTarget.files?.[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (evt) => {
+                                        const content = evt.target?.result as string;
+                                        setBulkSeedsText(content);
+                                    };
+                                    reader.readAsText(file);
+                                }
+                            }}
+                            style={{ display: 'none' }}
+                        />
+                    </Paper>
+
+                    <Textarea
+                        placeholder="Drop file anywhere or paste seeds here...&#10;&#10;KDBX2SMH&#10;3BCUYMCI&#10;11KH17QI&#10;..."
+                        value={bulkSeedsText}
+                        onChange={(e) => setBulkSeedsText(e.currentTarget.value)}
+                        minRows={10}
+                        maxRows={15}
+                        autosize
+                        styles={{
+                            input: {
+                                fontFamily: 'monospace',
+                                backgroundColor: theme.colors.dark[7],
+                                color: theme.colors.gray[3],
+                                fontSize: '14px',
+                                letterSpacing: '0.5px',
+                                transition: 'background-color 0.15s, border-color 0.15s',
+                            }
+                        }}
+                    />
+
+                    <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                            {bulkSeedsText.split(/\r?\n/).map((line: string) => {
+                                const firstCol = line.split(',')[0].trim().replace(/^["']|["']$/g, '');
+                                return firstCol;
+                            }).filter((s: string) => s.length > 0 && /^[A-Z0-9]+$/i.test(s)).length} seeds detected
+                        </Text>
+                        <Group gap="xs">
+                            <Button variant="light" onClick={closeBulkSeeds}>Cancel</Button>
+                            <Button onClick={handleBulkSeedsImport} leftSection={<IconUpload size={14} />}>
+                                Import Seeds
+                            </Button>
+                        </Group>
+                    </Group>
+                </Stack>
+            </Modal>
         </AppShell.Navbar>
     )
 }

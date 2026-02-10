@@ -168,7 +168,7 @@ export default function FeaturesModal() {
                                 <div>
                                     <Text fw={500} size="sm" mb={4}>How to find/use it:</Text>
                                     <List size="sm" withPadding>
-                                        <List.Item>Toggle "Show Joker Spoilers" switch in settings navbar</List.Item>
+                                        <List.Item>Toggle "Joker Spoilers" switch in settings navbar</List.Item>
                                         <List.Item>Cards in shops and packs will show the actual joker</List.Item>
                                         <List.Item>Toggle off to see the original card ( What you would see in game )</List.Item>
                                     </List>
