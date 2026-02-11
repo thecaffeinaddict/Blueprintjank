@@ -2,27 +2,27 @@ import { Layer } from "./classes/Layer.ts";
 
 export function getDeckBackPosition(deckName: string): { x: number, y: number } {
     // Deck backs in images/Decks/Enhancers.png
-    // Based on weejoker.app DeckSprite.tsx
+    // spriteWidth: 142, spriteHeight: 190, columns: 7, rows: 5
     const deckBackMap: Record<string, { x: number, y: number }> = {
         "Red Deck": { x: 0, y: 0 },
+        "Nebula Deck": { x: 3, y: 0 },
         "Blue Deck": { x: 0, y: 2 },
         "Yellow Deck": { x: 1, y: 2 },
         "Green Deck": { x: 2, y: 2 },
         "Black Deck": { x: 3, y: 2 },
-        "Magic Deck": { x: 0, y: 3 },
-        "Nebula Deck": { x: 3, y: 0 },
-        "Ghost Deck": { x: 6, y: 2 },
-        "Abandoned Deck": { x: 3, y: 3 },
-        "Checkered Deck": { x: 1, y: 3 },
-        "Zodiac Deck": { x: 3, y: 4 },
-        "Painted Deck": { x: 4, y: 3 },
-        "Anaglyph Deck": { x: 2, y: 4 },
         "Plasma Deck": { x: 4, y: 2 },
+        "Ghost Deck": { x: 6, y: 2 },
+        "Magic Deck": { x: 0, y: 3 },
+        "Checkered Deck": { x: 1, y: 3 },
         "Erratic Deck": { x: 2, y: 3 },
-        "Challenge Deck": { x: 0, y: 4 }, // Added from list
+        "Abandoned Deck": { x: 3, y: 3 },
+        "Painted Deck": { x: 4, y: 3 },
+        "Challenge Deck": { x: 0, y: 4 },
+        "Anaglyph Deck": { x: 2, y: 4 },
+        "Zodiac Deck": { x: 3, y: 4 },
         "Locked Deck": { x: 4, y: 0 }
     };
-    return deckBackMap[deckName] || { x: 2, y: 3 }; // Default to Erratic if unknown
+    return deckBackMap[deckName] || { x: 0, y: 0 }; // Default to Red
 }
 
 export function getStakeChipPosition(stakeName: string): { x: number, y: number } {

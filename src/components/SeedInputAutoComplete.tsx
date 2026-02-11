@@ -1,5 +1,5 @@
 import React, {useState, useRef} from "react";
-import { Autocomplete, Button, Group, NativeSelect, Paper } from "@mantine/core";
+import { Autocomplete, Box, Button, Group, NativeSelect, Paper } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
 import {popularSeeds, SeedsWithLegendary} from "../modules/const.ts";
 import {useCardStore} from "../modules/state/store.ts";
@@ -43,6 +43,7 @@ function SeedInputAutoComplete({ seed, setSeed, w, showDeckSelect, label = 'Seed
 
     const deck = useCardStore(state => state.engineState.deck);
     const setDeck = useCardStore(state => state.setDeck);
+    const setStart = useCardStore(state => state.setStart);
 
     const sectionWidth = 130;
     const deckSelect = showDeckSelect ? (
@@ -92,12 +93,13 @@ function SeedInputAutoComplete({ seed, setSeed, w, showDeckSelect, label = 'Seed
                 setLocalSeed(value);
                 if (allSuggestions.includes(value)) {
                     setSeed(value);
-                    isDirty.current = false;
+                    isDirty.current = true;
+                    setStart(true);
                 } else {
                     debouncedSetSeed(value);
                 }
             }}
-            rightSection={deckSelect}
+            rightSection={showDeckSelect ? deckSelect : undefined}
             rightSectionWidth={showDeckSelect ? sectionWidth : undefined}
         />
     );

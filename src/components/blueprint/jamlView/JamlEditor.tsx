@@ -27,60 +27,29 @@ import yaml from 'js-yaml';
 import { InteractiveJamlEditor } from './InteractiveJamlEditor';
 
 // Default JAML template - Trickeoglyph example
-const DEFAULT_JAML = `# Trickeoglyph.jaml
-name: Negative Trickeo-glyph
-author: qcom
-description: Negative perkeo ante 1, canio ante 8, both hieroglyph vouchers and magic trick before ante 8
+const DEFAULT_JAML = `# Egg.jaml
+name: EGG!
+author: The Egg Man
+description: I love Eggs
 deck: Ghost
 stake: White
 
 must:
-  - soulJoker: Perkeo
-    antes: [1]
-    edition: Negative
-
-  - voucher: MagicTrick
-    antes: [1, 2, 3, 4]
-  - voucher: Hieroglyph
-    antes: [1, 2, 3, 4, 5, 6]
-  - voucher: Petroglyph
-    antes: [1, 2, 3, 4, 5, 6, 7, 8]
-
-  - soulJoker: Canio
-    antes: [1, 2, 3, 4, 5, 6, 7, 8]
-
-should:
-  - soulJoker: Perkeo
-    antes: [1]
-    edition: Negative
-    packSlots: [0,1,2,3]
-    score: 10
-
-  - voucher: MagicTrick
-    antes: [1, 2, 3, 4]
-    score: 2
-  - voucher: Hieroglyph
-    antes: [1, 2, 3, 4, 5, 6]
-    score: 3
-  - voucher: Petroglyph
-    antes: [1, 2, 3, 4, 5, 6, 7, 8]
-    score: 3
-
   - soulJoker: Any
+    antes: [1]
+    sources:
+      packSlots: [1]
     edition: Negative
-    antes: [7,8]
-    packSlots: [0,1,2,3,4]
-    score: 5
-
-  - joker: Blueprint
-    score: 2
-  - joker: Brainstorm
-    score: 2
-
-  - tarotCard: Judgement
+  - joker: Showman
+    antes: [1]
+    sources:
+      packSlots: [0]
+should:
+  - joker: Egg
     antes: [1,2]
-    shopSlots: [0, 1, 2, 3]
-    score: 2
+    sources:
+      packSlots: [0,1]
+      shopSlots: [0,1,2,3,4,5]
 `;
 
 interface JamlEditorProps {
