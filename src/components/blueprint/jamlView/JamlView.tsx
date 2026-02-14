@@ -549,6 +549,16 @@ function JamlView() {
     // Multi-seed support - initialize with current seed if available
     const [seeds, setSeeds] = useState<Array<string>>(() => currentSeed ? [currentSeed] : []);
     const [currentSeedIndex, setCurrentSeedIndex] = useState(0);
+
+    // Sync currentSeedIndex with actual seed from store
+    useEffect(() => {
+        if (seeds.length > 0 && currentSeed) {
+            const idx = seeds.indexOf(currentSeed);
+            if (idx !== -1) {
+                setCurrentSeedIndex(idx);
+            }
+        }
+    }, [currentSeed, seeds]);
     const [bulkSeedsOpened, { open: openBulkSeeds, close: closeBulkSeeds }] = useDisclosure(false);
     const [bulkSeedsText, setBulkSeedsText] = useState('');
 
@@ -569,6 +579,18 @@ function JamlView() {
     const wasmProgressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     // Batch onResult into ref, flush periodically
     const wasmResultBatchRef = useRef<Array<{ seed: string; score: number }>>([]);
+
+    // Perf instrumentation (JS-side overhead)
+    const wasmPerfRef = useRef({
+        searchStartAt: 0,
+        lastLogAt: 0,
+        onProgressCalls: 0,
+        onResultCalls: 0,
+        onProgressMs: 0,
+        onResultMs: 0,
+        flushCalls: 0,
+        flushMs: 0,
+    });
 
     // Prefetch next seeds for smooth scrolling (Time-Sliced)
     useEffect(() => {
@@ -656,9 +678,21 @@ function JamlView() {
         wasmElapsedMsRef.current = 0;
         if (wasmProgressElRef.current) wasmProgressElRef.current.textContent = '';
 
+        wasmPerfRef.current = {
+            searchStartAt: performance.now(),
+            lastLogAt: performance.now(),
+            onProgressCalls: 0,
+            onResultCalls: 0,
+            onProgressMs: 0,
+            onResultMs: 0,
+            flushCalls: 0,
+            flushMs: 0,
+        };
+
         // Direct DOM updates only — zero React re-renders during search
         if (wasmProgressTimerRef.current) clearInterval(wasmProgressTimerRef.current);
         wasmProgressTimerRef.current = setInterval(() => {
+            const perf = wasmPerfRef.current;
             if (wasmProgressElRef.current) {
                 const searched = wasmSeedsSearchedRef.current;
                 const hits = wasmResultCountRef.current;
@@ -671,11 +705,37 @@ function JamlView() {
             }
             // Flush batched results
             if (wasmResultBatchRef.current.length > 0) {
+                const flushStart = performance.now();
                 const batch = wasmResultBatchRef.current;
                 wasmResultBatchRef.current = [];
                 setWasmResults(prev => {
                     if (prev.length >= 200) return prev;
                     return [...batch, ...prev].slice(0, 200);
+                });
+
+                perf.flushCalls += 1;
+                perf.flushMs += performance.now() - flushStart;
+            }
+
+            // Periodic perf log (once per ~2s)
+            const now = performance.now();
+            if (now - perf.lastLogAt >= 2000) {
+                perf.lastLogAt = now;
+                const searched = wasmSeedsSearchedRef.current;
+                const elapsedS = wasmElapsedMsRef.current / 1000;
+                const speed = elapsedS > 0 ? Math.round(searched / elapsedS) : 0;
+                // eslint-disable-next-line no-console
+                console.log('[MotelySearchPerf]', {
+                    speedSeedsPerSec: speed,
+                    searched,
+                    hits: wasmResultCountRef.current,
+                    wasmElapsedMs: wasmElapsedMsRef.current,
+                    jsOnProgressCalls: perf.onProgressCalls,
+                    jsOnResultCalls: perf.onResultCalls,
+                    jsOnProgressMs: Math.round(perf.onProgressMs),
+                    jsOnResultMs: Math.round(perf.onResultMs),
+                    jsFlushCalls: perf.flushCalls,
+                    jsFlushMs: Math.round(perf.flushMs),
                 });
             }
         }, 500);
@@ -687,25 +747,58 @@ function JamlView() {
                 jamlText,
                 {
                     threadCount: navigator.hardwareConcurrency,
-                    batchSize: 2,
+                    batchSize: 3,
                 },
                 {
                     onProgress: (searchId, totalSeedsSearched, _matchingSeeds, elapsedMs, resultCount) => {
+                        const t0 = performance.now();
                         if (!wasmSearchIdRef.current) wasmSearchIdRef.current = searchId;
                         wasmSeedsSearchedRef.current = totalSeedsSearched;
                         wasmResultCountRef.current = resultCount;
                         wasmElapsedMsRef.current = elapsedMs;
+
+                        const perf = wasmPerfRef.current;
+                        perf.onProgressCalls += 1;
+                        perf.onProgressMs += performance.now() - t0;
                     },
                     onResult: (searchId, seed, score) => {
+                        const t0 = performance.now();
                         if (!wasmSearchIdRef.current) wasmSearchIdRef.current = searchId;
                         if (wasmSeenRef.current.has(seed)) return;
                         wasmSeenRef.current.add(seed);
                         wasmResultBatchRef.current.push({ seed, score });
+
+                        const perf = wasmPerfRef.current;
+                        perf.onResultCalls += 1;
+                        perf.onResultMs += performance.now() - t0;
                     },
                 }
             );
 
             const finalStatus = await completion;
+
+            // Final perf log
+            {
+                const perf = wasmPerfRef.current;
+                const searched = wasmSeedsSearchedRef.current;
+                const elapsedS = wasmElapsedMsRef.current / 1000;
+                const speed = elapsedS > 0 ? Math.round(searched / elapsedS) : 0;
+                // eslint-disable-next-line no-console
+                console.log('[MotelySearchPerf][final]', {
+                    speedSeedsPerSec: speed,
+                    searched,
+                    hits: wasmResultCountRef.current,
+                    wasmElapsedMs: wasmElapsedMsRef.current,
+                    wallElapsedMs: Math.round(performance.now() - perf.searchStartAt),
+                    jsOnProgressCalls: perf.onProgressCalls,
+                    jsOnResultCalls: perf.onResultCalls,
+                    jsOnProgressMs: Math.round(perf.onProgressMs),
+                    jsOnResultMs: Math.round(perf.onResultMs),
+                    jsFlushCalls: perf.flushCalls,
+                    jsFlushMs: Math.round(perf.flushMs),
+                });
+            }
+
             // Final flush
             if (wasmProgressTimerRef.current) { clearInterval(wasmProgressTimerRef.current); wasmProgressTimerRef.current = null; }
             if (wasmProgressElRef.current) {

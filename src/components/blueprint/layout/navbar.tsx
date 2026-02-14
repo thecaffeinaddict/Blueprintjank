@@ -102,12 +102,12 @@ export default function NavBar() {
 
 
     const handleViewModeChange = (value: string) => {
-        // If clicking JAML (custom), close the menu
-        if (value === 'custom') {
-            toggleSettings(); // Close the menu
+        // Close the menu when opening the JAML view
+        if (value === 'jaml') {
+            toggleSettings();
         } else {
-            // If switching from JAML to another view, switch to Blueprint instead
-            const nextView = viewMode === 'custom' ? 'blueprint' : value;
+            // If switching away from JAML, keep Blueprint selected
+            const nextView = viewMode === 'jaml' ? 'blueprint' : value;
             setViewMode(nextView);
         }
         setViewMode(value);

@@ -324,8 +324,8 @@ export function Aside() {
                                 auraQueue={auraQueue}
                                 boosterQueue={boosterQueue}
                                 draws={blinds}
-                                onAddSource={(viewMode === 'custom' || viewMode === 'jaml') ? (sourceName, cards, sourceType) => {
-                                    // Dispatch custom event that Custom view can listen to
+                                onAddSource={(viewMode === 'jaml') ? (sourceName, cards, sourceType) => {
+                                    // Dispatch custom event that JAML view can listen to
                                     // Use the currently selected ante from the store
                                     const currentAnte = selectedAnte || 1;
                                     // Key format matches MiscCardSourcesDisplay: ${sourceType}-${sourceName}
